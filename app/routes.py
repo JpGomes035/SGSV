@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app import db
 from app.models import Usuario, Solicitacao
-from sqlalchemy.exc import IntegrityError # Importando para tratar erros no salvamento
+from sqlalchemy.exc import IntegrityError
 
 print("--- ROTAS CARREGADAS COM SUCESSO ---")
 
@@ -17,54 +17,194 @@ def inject_user():
         role = session.get('user_tipo')
     return dict(current_user=MockUser())
 
-# --- DASHBOARD UVIS (Visão da Unidade) ---
+# --- DASHBOARD UVIS ---
 @bp.route('/')
 def dashboard():
-    # 1. Login obrigatório
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
     
-    # 2. Se for admin, redireciona para o painel de admin
     if session.get('user_tipo') == 'admin':
         return redirect(url_for('main.admin_dashboard'))
 
-    # 3. Busca apenas solicitações do próprio usuário logado
-    
-    # GARANTIA: Converte para INT
     try:
-        user_id = int(session.get('user_id')) 
+        user_id = int(session.get('user_id'))
     except (ValueError, TypeError):
         session.clear()
         flash('Sessão Inválida. Por favor, faça login novamente.', 'warning')
         return redirect(url_for('main.login'))
     
-    # Consulta ao banco
     query = Solicitacao.query.filter_by(usuario_id=user_id).order_by(Solicitacao.data_criacao.desc())
     
-    # --- DEBUG BRUTAL (OLHE O TERMINAL) ---
     print("\n===============================")
     print(f"DEBUG: USUÁRIO LOGADO ID (SESSÃO): {user_id}")
     print(f"DEBUG: FILTRO SQL A SER EXECUTADO: {query.statement.compile(compile_kwargs={'literal_binds': True})}")
     print("===============================\n")
-    # -------------------------------------
     
     lista_solicitacoes = query.all()
-    
     return render_template('dashboard.html', nome=session.get('user_nome'), solicitacoes=lista_solicitacoes)
 
-# --- PAINEL ADMIN (Visualizar Pedidos) ---
+# --- PAINEL ADMIN (com filtros) ---
 @bp.route('/admin')
 def admin_dashboard():
-    # Verifica se é admin mesmo
+    if 'user_id' not in session or session.get('user_tipo') != 'admin':
+        return redirect(url_for('main.login'))
+    
+    # --- Captura filtros enviados pelo GET ---
+    filtro_status = request.args.get("status")
+    filtro_unidade = request.args.get("unidade")
+    filtro_regiao = request.args.get("regiao")
+
+    # --- Query base ---
+    query = Solicitacao.query.join(Usuario)
+
+    # --- Filtros aplicáveis ---
+    if filtro_status:
+        query = query.filter(Solicitacao.status == filtro_status)
+
+    if filtro_unidade:
+        query = query.filter(Usuario.nome_uvis.ilike(f"%{filtro_unidade}%"))
+
+    if filtro_regiao:
+        query = query.filter(Usuario.regiao.ilike(f"%{filtro_regiao}%"))
+
+    pedidos_filtrados = query.order_by(Solicitacao.data_criacao.desc()).all()
+
+    return render_template('admin.html', pedidos=pedidos_filtrados)
+
+@bp.route('/admin/exportar_excel')
+def exportar_excel():
     if 'user_id' not in session or session.get('user_tipo') != 'admin':
         return redirect(url_for('main.login'))
 
-    # Busca TODOS os pedidos do banco (para o admin ver tudo)
-    todos_pedidos = Solicitacao.query.order_by(Solicitacao.data_criacao.desc()).all()
-    
-    return render_template('admin.html', pedidos=todos_pedidos)
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.utils import get_column_letter
+    from io import BytesIO
+    from flask import send_file
 
-# --- ROTA DE ATUALIZAÇÃO (Salvar dados do Admin) ---
+    # --- Captura filtros ---
+    filtro_status = request.args.get("status")
+    filtro_unidade = request.args.get("unidade")
+    filtro_regiao = request.args.get("regiao")
+
+    # Query base
+    query = Solicitacao.query.join(Usuario)
+
+    if filtro_status:
+        query = query.filter(Solicitacao.status == filtro_status)
+
+    if filtro_unidade:
+        query = query.filter(Usuario.nome_uvis.ilike(f"%{filtro_unidade}%"))
+
+    if filtro_regiao:
+        query = query.filter(Usuario.regiao.ilike(f"%{filtro_regiao}%"))
+
+    pedidos = query.order_by(Solicitacao.data_criacao.desc()).all()
+
+    # --- CRIA EXCEL ---
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Relatório de Solicitações"
+
+    # Cabeçalho
+    headers = [
+        "ID",
+        "Unidade (UVIS)",
+        "Região",
+        "CEP",
+        "Endereço Completo",
+        "UF",
+        "Foco da Ação",
+        "Data Agendamento",
+        "Hora Agendamento",
+        "Status",
+        "Protocolo DECEA",
+        "Coordenadas",
+        "Justificativa"
+    ]
+
+    # Estilos
+    header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+
+    # Escreve cabeçalho
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = thin_border
+
+    # Conteúdo
+    row_num = 2
+    for p in pedidos:
+
+        # Monta o endereço completo
+        endereco_completo = f"{p.logradouro or ''}, {getattr(p, 'numero', '') or ''} - {p.bairro or ''}, {p.cidade or ''}".strip()
+        endereco_completo = endereco_completo.replace(" ,", "").replace(" - ,", "").replace(", ,", ",")
+
+        row = [
+            p.id,
+            p.autor.nome_uvis,
+            p.autor.regiao,
+            p.cep,
+            endereco_completo,
+            p.uf,
+            p.foco,
+            p.data_agendamento,
+            p.hora_agendamento,
+            p.status,
+            p.protocolo,
+            p.coords,
+            p.justificativa
+        ]
+
+        for col_num, value in enumerate(row, 1):
+            cell = ws.cell(row=row_num, column=col_num, value=value)
+            cell.border = thin_border
+            cell.alignment = Alignment(vertical="center", wrap_text=True)
+
+        row_num += 1
+
+    # Freeze Pane
+    ws.freeze_panes = "A2"
+
+    # Ajuste automático de largura
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column  # Número da coluna
+
+        for cell in col:
+            try:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            except:
+                pass
+
+        adjusted_width = max_length + 2
+        ws.column_dimensions[get_column_letter(column)].width = adjusted_width
+
+    # Salvar em memória
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    # Enviar arquivo
+    return send_file(
+        output,
+        download_name="relatorio_solicitacoes.xlsx",
+        as_attachment=True,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
+# --- ROTA DE ATUALIZAÇÃO ---
 @bp.route('/admin/atualizar/<int:id>', methods=['POST'])
 def atualizar(id):
     if session.get('user_tipo') != 'admin':
@@ -78,11 +218,11 @@ def atualizar(id):
     pedido.justificativa = request.form.get('justificativa')
     
     db.session.commit()
-    flash(f'Pedido atualizado com sucesso!', 'success')
+    flash('Pedido atualizado com sucesso!', 'success')
     
     return redirect(url_for('main.admin_dashboard'))
 
-# --- NOVO PEDIDO (Cadastro da UVIS) ---
+# --- NOVO PEDIDO ---
 @bp.route('/novo_cadastro', methods=['GET', 'POST'], endpoint='novo')
 def novo():
     if 'user_id' not in session:
@@ -90,30 +230,31 @@ def novo():
 
     if request.method == 'POST':
         try:
-            # Garante que o ID da sessão está limpo e é um inteiro
             user_id_int = int(session['user_id'])
 
             nova_solicitacao = Solicitacao(
                 data_agendamento=request.form.get('data'),
                 hora_agendamento=request.form.get('hora'),
-                endereco=request.form.get('endereco'),
+
+                cep=request.form.get('cep'),
+                logradouro=request.form.get('logradouro'),
+                bairro=request.form.get('bairro'),
+                cidade=request.form.get('cidade'),
+                uf=request.form.get('uf'),
+
                 foco=request.form.get('foco'),
-                usuario_id=user_id_int, # Usa o ID inteiro garantido
+                usuario_id=user_id_int,
                 status='EM ANÁLISE'
             )
+
             db.session.add(nova_solicitacao)
             db.session.commit()
-            
-            # --- DEBUG EXTRA (OLHE O TERMINAL) ---
-            print(f"SALVAMENTO: Pedido salvo com sucesso! ID do criador: {user_id_int}")
-            # -----------------------------------
-            
+
             flash('Pedido enviado para análise!', 'success')
             return redirect(url_for('main.dashboard'))
-        except IntegrityError:
-            db.session.rollback()
-            flash("Erro de integridade no banco de dados. Tente fazer login novamente.", "danger")
+
         except Exception as e:
+            db.session.rollback()
             flash(f"Erro ao salvar: {e}", "danger")
 
     return render_template('cadastro.html')
@@ -130,7 +271,6 @@ def login():
         user = Usuario.query.filter_by(login=request.form.get('login')).first()
 
         if user and user.check_senha(request.form.get('senha')):
-            # SALVA ID como INTEIRO para evitar conflito com o banco
             session['user_id'] = int(user.id)
             session['user_nome'] = user.nome_uvis
             session['user_tipo'] = user.tipo_usuario
@@ -143,6 +283,7 @@ def login():
 
     return render_template('login.html')
 
+# --- LOGOUT ---
 @bp.route('/logout')
 def logout():
     session.clear()

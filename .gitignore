@@ -1,0 +1,22 @@
+--- 1. Arquivos de Cache e Compilação do Python ---
+pycache/
+*.pyc
+*.pyd
+*.pyo
+
+--- 2. Ambiente Virtual ---
+venv/
+env/
+.venv/
+
+--- 3. Banco de Dados e Dados Locais (CRÍTICO) ---
+*.db              # Ignora arquivos de banco de dados
+*.sqlite          # Outro formato de arquivo de banco de dados
+sqlite3.db        # Nome comum do arquivo
+/instance/        # Pasta que contém o arquivo sgsv.db
+sgsv.db           # O seu arquivo de banco de dados específico
+
+--- 4. Configurações de Ferramentas ---
+.flaskenv         # Variáveis de ambiente locais
+.vscode/          # Configurações do VS Code
+.idea/            # Configurações do JetBrains (PyCharm)

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-secondary"><i class="bi bi-list-task"></i> Minhas Solicitações</h2>
+    <a href="{{ url_for('main.novo') }}" class="btn btn-success shadow-sm">
+        <i class="bi bi-plus-lg"></i> Nova Solicitação
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Data Planejada</th>
+                        <th>Endereço / Motivo</th>
+                        <th class="text-center">Situação</th>
+                        <th>Protocolo DECEA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pedidos %}
+                    <tr>
+                        <td>
+                            <strong class="text-dark">{{ p.data_voo }}</strong>
+                            <br><small class="text-muted">{{ p.hora_voo }}</small>
+                        </td>
+                        <td>
+                            {{ p.endereco }}
+                            <br><span class="badge bg-light text-dark border mt-1">{{ p.foco }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if p.status == 'APROVADO' %}
+                                <span class="badge bg-success rounded-pill">Aprovado</span>
+                            {% elif p.status == 'NEGADO' %}
+                                <span class="badge bg-danger rounded-pill" title="{{ p.justificativa }}" data-bs-toggle="tooltip">Negado</span>
+                                <div class="small text-danger mt-1 fw-bold" style="font-size: 0.75rem">Ver Motivo</div>
+                            {% else %}
+                                <span class="badge bg-warning text-dark rounded-pill">Em Análise</span>
+                            {% endif %}
+                        </td>
+                        <td class="font-monospace text-primary fw-bold">
+                            {{ p.protocolo or '-' }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                            Você ainda não tem solicitações de voo.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}175821

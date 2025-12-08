@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0"><i class="bi bi-send-fill"></i> Novo Pedido de Voo</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    
+                    <h6 class="text-muted mb-3 border-bottom pb-2">Agendamento</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="fw-bold mb-1">Data</label>
+                            <input type="date" name="data" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold mb-1">Hora</label>
+                            <input type="time" name="hora" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted mb-3 border-bottom pb-2 mt-4">Localização</h6>
+                    <div class="mb-3">
+                        <label class="fw-bold mb-1">Endereço Completo</label>
+                        <input type="text" name="endereco" class="form-control" placeholder="Rua, Número, Bairro" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="fw-bold mb-1">Foco da Ação</label>
+                        <select name="foco" class="form-select">
+                            <option>Imóvel Abandonado</option>
+                            <option>Piscina / Caixa D'água</option>
+                            <option>Terreno Baldio</option>
+                            <option>Ponto Estratégico (PE)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-light border">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">Salvar Pedido</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

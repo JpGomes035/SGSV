@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card p-4 shadow-lg">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-primary">Bem-vindo</h3>
+                <p class="text-muted">Gestão de Solicitações de Voo</p>
+            </div>
+            
+            <form method="POST">
+                <div class="form-floating mb-3">
+                    <input type="text" name="login" class="form-control" id="floatingInput" placeholder="Usuário" required>
+                    <label for="floatingInput">Usuário (Ex: lapa)</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="password" name="senha" class="form-control" id="floatingPassword" placeholder="Senha" required>
+                    <label for="floatingPassword">Senha</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fs-5">Entrar</button>
+            </form>
+
+            <div class="mt-4 pt-3 border-top text-center small text-muted">
+                Credenciais de teste:<br>
+                <strong>admin</strong> / admin | <strong>lapa</strong> / 1234
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

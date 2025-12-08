@@ -11,7 +11,6 @@
    ) }}">
         <i class="bi bi-file-earmark-excel"></i> Exportar Excel
     </a>
-
 </div>
 
 <form method="GET" class="row g-2 mb-3">
@@ -61,43 +60,38 @@
                 {% for p in pedidos %}
                 <tr>
 
-                    <!-- COLUNA 1 — Identificação e Endereço -->
                     <td class="bg-light">
                         <strong class="text-primary">{{ p.autor.nome_uvis }}</strong>
                         <br>
                         <span class="badge bg-secondary mb-2">{{ p.autor.regiao }}</span>
 
                         <div class="small text-muted border-top pt-2">
-
                             <i class="bi bi-calendar"></i>
                             {{ p.data_agendamento }} às {{ p.hora_agendamento }} <br>
 
                             <i class="bi bi-geo-alt"></i>
-                            {{ p.logradouro }},
-                            {{ p.numero or 'S/N' }} -
-                            {{ p.bairro }} <br>
+                            <span id="logradouro_{{ p.id }}">{{ p.logradouro }}</span>,
+                            <span id="numero_{{ p.id }}">{{ p.numero or 'S/N' }}</span> -
+                            <span id="bairro_{{ p.id }}">{{ p.bairro }}</span> <br>
 
-                            {{ p.cidade }} / {{ p.uf }} <br>
+                            <span id="cidade_{{ p.id }}">{{ p.cidade }}</span> /
+                            <span id="uf_{{ p.id }}">{{ p.uf }}</span> <br>
 
-                            CEP: {{ p.cep }}
+                            CEP: <span id="cep_{{ p.id }}">{{ p.cep }}</span>
                         </div>
                     </td>
 
-                    <!-- FORM DE ATUALIZAÇÃO -->
                     <form action="{{ url_for('main.atualizar', id=p.id) }}" method="POST">
 
-                        <!-- COLUNA 2 — Dados técnicos -->
                         <td>
                             <label class="small fw-bold text-muted">Coordenadas</label>
-                            <input name="coords" class="form-control form-control-sm mb-2" placeholder="Lat, Long"
-                                value="{{ p.coords or '' }}">
-
+                            <input id="coords_{{ p.id }}" name="coords" class="form-control form-control-sm mb-2"
+                                placeholder="Lat, Long" value="{{ p.coords or '' }}">
                             <label class="small fw-bold text-muted">Protocolo DECEA</label>
                             <input name="protocolo" class="form-control form-control-sm font-monospace"
                                 placeholder="BR-2025-XXXX" value="{{ p.protocolo or '' }}">
                         </td>
 
-                        <!-- COLUNA 3 — Status e Justificativas -->
                         <td>
                             <div class="row g-2">
                                 <div class="col-12">
@@ -128,6 +122,7 @@
                     </form>
 
                 </tr>
+
                 {% else %}
                 <tr>
                     <td colspan="3" class="text-center py-4">Nenhum pedido encontrado.</td>
@@ -138,5 +133,6 @@
         </table>
     </div>
 </div>
+
 
 {% endblock %}

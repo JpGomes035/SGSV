@@ -43,6 +43,11 @@ body {
     line-height: 1.6;
 }
 
+.fs-4 {
+    font-family: garamond, 'Times New Roman', serif;
+    font-size: 1.25rem;
+}
+
 h1, h2, h3, h4, h5, h6 {
     color: var(--color-primary-dark);
     font-weight: 700;
@@ -68,46 +73,68 @@ a:hover {
 /* =========================================
    NAVBAR (FUNDO BRANCO)
    ========================================= */
+/* =========================================
+   NAVBAR COM EFEITO SMOOTH SHRINK
+   ========================================= */
+
+/* --- ESTADO INICIAL (Topo da Página) --- */
 .navbar {
-    background-color: var(--color-bg-white) !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
-    padding: 0.8rem 0;
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: none !important; /* Sem sombra no topo para ficar limpo */
+    padding: 1rem 0; /* Espaçamento GRANDE inicial */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Transição muito suave */
 }
 
-/* Marca */
+/* Logo (Imagem) Inicial */
+.navbar-brand img {
+    height: 65px; /* Tamanho Grande */
+    transition: height 0.4s ease; /* Anima a altura */
+    width: auto;
+}
+
+/* Texto da Marca Inicial */
 .navbar-brand span {
+    font-size: 1.5rem; /* ~24px */
     font-weight: 700;
-    letter-spacing: 0.5px;
     color: var(--color-primary-dark) !important;
+    transition: font-size 0.4s ease; /* Anima o tamanho da fonte */
 }
 
-/* Links de Navegação */
+/* --- ESTADO ROLADO (SCROLLED) --- */
+.navbar-scrolled {
+    background-color: rgba(255, 255, 255, 0.95) !important; /* Leve transparência */
+    backdrop-filter: blur(10px); /* Efeito vidro */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important; /* Sombra aparece */
+    padding: 0.3rem 0 !important; /* Espaçamento PEQUENO */
+}
+
+/* Logo Encolhida */
+.navbar-scrolled .navbar-brand img {
+    height: 40px; /* Reduz para 40px suavemente */
+}
+
+/* Texto Encolhido */
+.navbar-scrolled .navbar-brand span {
+    font-size: 1.1rem; /* Reduz o texto suavemente */
+}
+
+/* --- RESTANTE DA NAVBAR (Links e Botões) --- */
 .navbar-nav .nav-link {
     color: var(--color-text-muted) !important;
     font-weight: 500;
-    font-size: 0.95rem;
+    transition: color 0.2s;
 }
-.navbar-nav .nav-link:hover {
-    color: var(--color-accent) !important;
-}
-/* Ícones dentro da navbar seguem a cor do link */
-.navbar-nav .nav-link .bi {
-    color: inherit; 
-}
+.navbar-nav .nav-link:hover { color: var(--color-accent) !important; }
 
-/* Botão Sair (Outline) na Navbar */
 .navbar .btn-outline-light {
     color: var(--color-primary) !important;
     border-color: var(--color-primary) !important;
+    transition: all 0.3s;
 }
 .navbar .btn-outline-light:hover {
     background-color: var(--color-primary) !important;
-    color: var(--color-bg-white) !important;
+    color: #fff !important;
 }
-.navbar .btn-outline-light .bi {
-    color: inherit; /* Garante que o ícone fique branco no hover */
-}
-
 /* =========================================
    BOTÕES
    ========================================= */

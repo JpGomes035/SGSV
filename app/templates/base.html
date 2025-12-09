@@ -18,9 +18,10 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('main.dashboard') }}">
-                <img src="{{ url_for('static', filename='img/logo_sem_fundo.png') }}" 
+                <img src="{{ url_for('static', filename='img/logo_oceanoazul.png') }}" 
                      alt="OceanoAzul Logo" 
                      height="65" 
+                     id="navbar-logo"
                      class="d-inline-block align-text-top">
                 
                 <span class="fs-4">OceanoAzul</span>
@@ -68,6 +69,19 @@
         {% block content %}{% endblock %}
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const navbar = document.querySelector('.navbar');
+
+        window.onscroll = function() {
+            // Se desceu mais de 30px, ativa o efeito
+            if (window.scrollY > 30) {
+                navbar.classList.add('navbar-scrolled');
+            } else {
+                navbar.classList.remove('navbar-scrolled');
+            }
+        };
+    </script>
 </body>
 </html>

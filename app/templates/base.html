@@ -3,45 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGSV - Sistema de Voos</title>
+    <title>Sistema UVIS - Oceano Azul</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-airplane-engines-fill"></i> SGSV
+            <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('main.dashboard') }}">
+                <img src="{{ url_for('static', filename='img/logo_sem_fundo.png') }}" 
+                     alt="OceanoAzul Logo" 
+                     height="65" 
+                     class="d-inline-block align-text-top">
+                
+                <span class="fs-4">OceanoAzul</span>
             </a>
-            
-            <div class="text-white d-flex align-items-center">
-                {% if current_user.is_authenticated %}
-                    <div class="me-3 text-end lh-1 d-none d-md-block">
-                        <span class="d-block small text-secondary">Logado como:</span>
-                        <strong>{{ current_user.nome_uvis }}</strong>
-                    </div>
-                    <a href="{{ url_for('main.logout') }}" class="btn btn-outline-warning btn-sm">
-                        <i class="bi bi-box-arrow-right"></i> Sair
-                    </a>
-                {% endif %}
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center gap-3">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="nav-link">
+                            <i class="bi bi-person-circle me-1"></i> 
+                            Olá, <strong>{{ current_user.name }}</strong>
+                        </span>
+                    </li>
+                    <li class="nav-item border-start ps-3 d-none d-lg-block"></li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light btn-sm rounded-pill px-3 fw-bold" href="{{ url_for('main.logout') }}">
+                            Sair <i class="bi bi-box-arrow-right ms-1"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container pb-5">
-        {% with messages = get_flashed_messages() %}
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
-                    <i class="bi bi-info-circle-fill"></i> {{ messages[0] }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm rounded-4" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
             {% endif %}
         {% endwith %}
+    </div>
 
+    <div class="container py-4">
         {% block content %}{% endblock %}
     </div>
 

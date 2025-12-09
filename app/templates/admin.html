@@ -67,7 +67,7 @@
 
                         <div class="small text-muted border-top pt-2">
                             <i class="bi bi-calendar"></i>
-                            {{ p.data_agendamento }} às {{ p.hora_agendamento }} <br>
+                            {{ p.data_agendamento | datetimeformat }} às {{ p.hora_agendamento }}
 
                             <i class="bi bi-geo-alt"></i>
                             <span id="logradouro_{{ p.id }}">{{ p.logradouro }}</span>,

@@ -14,7 +14,13 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="fw-bold mb-1">Data</label>
-                            <input type="date" name="data" class="form-control" required>
+                            <input 
+                                type="date" 
+                                name="data" 
+                                class="form-control" 
+                                required
+                                min="{{ hoje }}"
+                            >
                         </div>
                         <div class="col-md-6">
                             <label class="fw-bold mb-1">Hora</label>
@@ -44,11 +50,15 @@
                         <input type="text" id="bairro" name="bairro"
                                class="form-control" required>
                     </div>
-
                     <div class="row mb-3">
                         <div class="col-md-8">
                             <label class="fw-bold mb-1">Cidade</label>
                             <input type="text" id="cidade" name="cidade"
+                                   class="form-control" required>
+                        </div>
+                         <div class="col-md-8">
+                            <label class="fw-bold mb-1">Número</label>
+                            <input type="text" id="numero" name="numero"
                                    class="form-control" required>
                         </div>
                         <div class="col-md-4">

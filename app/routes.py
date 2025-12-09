@@ -2,11 +2,19 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app import db
 from app.models import Usuario, Solicitacao
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
+
 
 print("--- ROTAS CARREGADAS COM SUCESSO ---")
 
 bp = Blueprint('main', __name__)
-
+@bp.app_template_filter('datetimeformat')
+def datetimeformat(value, format='%d-%m-%y'):
+    try:
+        # tenta converter string do tipo "2025-12-09"
+        return datetime.strptime(value, "%Y-%m-%d").strftime(format)
+    except:
+        return value  # se falhar, retorna como está
 # --- Context Processor: Simula o 'current_user' para o HTML ---
 @bp.context_processor
 def inject_user():
@@ -149,21 +157,31 @@ def exportar_excel():
         endereco_completo = f"{p.logradouro or ''}, {getattr(p, 'numero', '') or ''} - {p.bairro or ''}, {p.cidade or ''}".strip()
         endereco_completo = endereco_completo.replace(" ,", "").replace(" - ,", "").replace(", ,", ",")
 
+
+    # Formata a data
+        if p.data_agendamento:
+            try:
+                data_formatada = datetime.strptime(p.data_agendamento, "%Y-%m-%d").strftime("%d-%m-%y")
+            except ValueError:
+                data_formatada = p.data_agendamento
+        else:
+            data_formatada = ""
+            
         row = [
-            p.id,
-            p.autor.nome_uvis,
-            p.autor.regiao,
-            p.cep,
-            endereco_completo,
-            p.uf,
-            p.foco,
-            p.data_agendamento,
-            p.hora_agendamento,
-            p.status,
-            p.protocolo,
-            p.coords,
-            p.justificativa
-        ]
+        p.id,
+        p.autor.nome_uvis,
+        p.autor.regiao,
+        p.cep,
+        endereco_completo,
+        p.uf,
+        p.foco,
+        data_formatada,  # << aqui usamos a data formatada
+        p.hora_agendamento,
+        p.status,
+        p.protocolo,
+        p.coords,
+        p.justificativa
+    ]
 
         for col_num, value in enumerate(row, 1):
             cell = ws.cell(row=row_num, column=col_num, value=value)
@@ -228,6 +246,10 @@ def novo():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
 
+    from datetime import date
+    #Trava data aqui pra não inserir uma anterior que hoje
+    hoje = date.today().isoformat() 
+
     if request.method == 'POST':
         try:
             user_id_int = int(session['user_id'])
@@ -240,6 +262,7 @@ def novo():
                 logradouro=request.form.get('logradouro'),
                 bairro=request.form.get('bairro'),
                 cidade=request.form.get('cidade'),
+                numero=request.form.get('numero'),
                 uf=request.form.get('uf'),
 
                 foco=request.form.get('foco'),
@@ -257,7 +280,7 @@ def novo():
             db.session.rollback()
             flash(f"Erro ao salvar: {e}", "danger")
 
-    return render_template('cadastro.html')
+    return render_template('cadastro.html', hoje=hoje)
 
 # --- LOGIN ---
 @bp.route('/login', methods=['GET', 'POST'])

@@ -68,7 +68,7 @@
                         <div class="small text-muted border-top pt-2">
                             <i class="bi bi-calendar"></i>
                             {{ p.data_agendamento | datetimeformat }} às {{ p.hora_agendamento }}
-
+                            <br>
                             <i class="bi bi-geo-alt"></i>
                             <span id="logradouro_{{ p.id }}">{{ p.logradouro }}</span>,
                             <span id="numero_{{ p.id }}">{{ p.numero or 'S/N' }}</span> -
@@ -83,7 +83,7 @@
 
                     <form action="{{ url_for('main.atualizar', id=p.id) }}" method="POST">
 
-                        <td>
+                        <td>                
                             <label class="small fw-bold text-muted">Coordenadas</label>
                             <input id="coords_{{ p.id }}" name="coords" class="form-control form-control-sm mb-2"
                                 placeholder="Lat, Long" value="{{ p.coords or '' }}">

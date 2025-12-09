@@ -73,52 +73,50 @@ a:hover {
 /* =========================================
    NAVBAR (FUNDO BRANCO)
    ========================================= */
-/* =========================================
-   NAVBAR COM EFEITO SMOOTH SHRINK
-   ========================================= */
-
-/* --- ESTADO INICIAL (Topo da Página) --- */
 .navbar {
     background-color: rgba(255, 255, 255, 0.98) !important;
-    box-shadow: none !important; /* Sem sombra no topo para ficar limpo */
-    padding: 1rem 0; /* Espaçamento GRANDE inicial */
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Transição muito suave */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    padding: 1rem 0;
+    border-bottom: 1px solid transparent;
+    height: auto;
 }
 
-/* Logo (Imagem) Inicial */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease-in-out;
+}
+
 .navbar-brand img {
-    height: 65px; /* Tamanho Grande */
-    transition: height 0.4s ease; /* Anima a altura */
+    max-height: 60px;
     width: auto;
+    transition: max-height 0.3s ease-in-out;
+    backface-visibility: hidden;
 }
 
-/* Texto da Marca Inicial */
 .navbar-brand span {
-    font-size: 1.5rem; /* ~24px */
+    font-size: 1.5rem;
     font-weight: 700;
-    color: var(--color-primary-dark) !important;
-    transition: font-size 0.4s ease; /* Anima o tamanho da fonte */
+    color: var(--color-primary-dark);
+    transition: font-size 0.3s ease-in-out;
+    line-height: 1;
 }
 
-/* --- ESTADO ROLADO (SCROLLED) --- */
 .navbar-scrolled {
-    background-color: rgba(255, 255, 255, 0.95) !important; /* Leve transparência */
-    backdrop-filter: blur(10px); /* Efeito vidro */
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important; /* Sombra aparece */
-    padding: 0.3rem 0 !important; /* Espaçamento PEQUENO */
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important;
 }
 
-/* Logo Encolhida */
 .navbar-scrolled .navbar-brand img {
-    height: 40px; /* Reduz para 40px suavemente */
+    max-height: 40px !important;
 }
 
-/* Texto Encolhido */
 .navbar-scrolled .navbar-brand span {
-    font-size: 1.1rem; /* Reduz o texto suavemente */
+    font-size: 1.2rem !important;
 }
 
-/* --- RESTANTE DA NAVBAR (Links e Botões) --- */
 .navbar-nav .nav-link {
     color: var(--color-text-muted) !important;
     font-weight: 500;
@@ -130,10 +128,11 @@ a:hover {
     color: var(--color-primary) !important;
     border-color: var(--color-primary) !important;
     transition: all 0.3s;
+    padding: 0.375rem 0.75rem;
 }
-.navbar .btn-outline-light:hover {
-    background-color: var(--color-primary) !important;
-    color: #fff !important;
+
+.navbar-scrolled .btn-outline-light {
+    font-size: 0.85rem;
 }
 /* =========================================
    BOTÕES

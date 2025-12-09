@@ -311,5 +311,3 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('main.login'))
-
-    

@@ -1,113 +1,148 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white py-3">
-                <h5 class="mb-0"><i class="bi bi-send-fill"></i> Novo Pedido de Voo</h5>
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white py-3">
+        <h5 class="mb-0"><i class="bi bi-send-fill"></i> Novo Pedido de Voo</h5>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <!-- Agendamento -->
+          <h6 class="text-muted mb-3 border-bottom pb-2">Agendamento</h6>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="fw-bold mb-1">Data</label>
+              <input
+                type="date"
+                name="data"
+                class="form-control"
+                required
+                min="{{ hoje }}"
+              />
             </div>
-            <div class="card-body p-4">
-                <form method="POST">
-
-                    <!-- Agendamento -->
-                    <h6 class="text-muted mb-3 border-bottom pb-2">Agendamento</h6>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="fw-bold mb-1">Data</label>
-                            <input 
-                                type="date" 
-                                name="data" 
-                                class="form-control" 
-                                required
-                                min="{{ hoje }}"
-                            >
-                        </div>
-                        <div class="col-md-6">
-                            <label class="fw-bold mb-1">Hora</label>
-                            <input type="time" name="hora" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <!-- Localização -->
-                    <h6 class="text-muted mb-3 border-bottom pb-2 mt-4">Localização</h6>
-
-                    <!-- Campo CEP -->
-                    <div class="mb-3">
-                        <label class="fw-bold mb-1">CEP</label>
-                        <input type="text" id="cep" name="cep" maxlength="9"
-                               class="form-control" placeholder="00000-000" required>
-                    </div>
-
-                    <!-- Campos preenchidos automaticamente -->
-                    <div class="mb-3">
-                        <label class="fw-bold mb-1">Logradouro</label>
-                        <input type="text" id="endereco" name="logradouro"
-                               class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="fw-bold mb-1">Bairro</label>
-                        <input type="text" id="bairro" name="bairro"
-                               class="form-control" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-8">
-                            <label class="fw-bold mb-1">Cidade</label>
-                            <input type="text" id="cidade" name="cidade"
-                                   class="form-control" required>
-                        </div>
-                         <div class="col-md-8">
-                            <label class="fw-bold mb-1">Número</label>
-                            <input type="text" id="numero" name="numero"
-                                   class="form-control" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="fw-bold mb-1">UF</label>
-                            <input type="text" id="uf" name="uf"
-                                   class="form-control" required>
-                        </div>
-                    </div>
-
-                    <!-- Foco -->
-                    <div class="mb-4">
-                        <label class="fw-bold mb-1">Foco da Ação</label>
-                        <select name="foco" class="form-select">
-                            <option>Imóvel Abandonado</option>
-                            <option>Piscina / Caixa D'água</option>
-                            <option>Terreno Baldio</option>
-                            <option>Ponto Estratégico (PE)</option>
-                        </select>
-                    </div>
-
-                    <!-- Botões -->
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-light border">Cancelar</a>
-                        <button type="submit" class="btn btn-primary px-4 fw-bold">Salvar Pedido</button>
-                    </div>
-
-                </form>
+            <div class="col-md-6">
+              <label class="fw-bold mb-1">Hora</label>
+              <input type="time" name="hora" class="form-control" required />
             </div>
-        </div>
+          </div>
+
+          <!-- Localização -->
+          <h6 class="text-muted mb-3 border-bottom pb-2 mt-4">Localização</h6>
+
+          <!-- Campo CEP -->
+          <div class="mb-3">
+            <label class="fw-bold mb-1">CEP</label>
+            <input
+              type="text"
+              id="cep"
+              name="cep"
+              maxlength="9"
+              class="form-control"
+              placeholder="00000-000"
+              required
+            />
+          </div>
+
+          <!-- Campos preenchidos automaticamente -->
+          <div class="mb-3">
+            <label class="fw-bold mb-1">Logradouro</label>
+            <input
+              type="text"
+              id="endereco"
+              name="logradouro"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="fw-bold mb-1">Bairro</label>
+            <input
+              type="text"
+              id="bairro"
+              name="bairro"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <label class="fw-bold mb-1">Cidade</label>
+              <input
+                type="text"
+                id="cidade"
+                name="cidade"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="col-md-8">
+              <label class="fw-bold mb-1">Número</label>
+              <input
+                type="text"
+                id="numero"
+                name="numero"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="col-md-4">
+              <label class="fw-bold mb-1">UF</label>
+              <input
+                type="text"
+                id="uf"
+                name="uf"
+                class="form-control"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Foco -->
+          <div class="mb-4">
+            <label class="fw-bold mb-1">Foco da Ação</label>
+            <select name="foco" class="form-select">
+              <option>Imóvel Abandonado</option>
+              <option>Piscina / Caixa D'água</option>
+              <option>Terreno Baldio</option>
+              <option>Ponto Estratégico (PE)</option>
+            </select>
+          </div>
+
+          <!-- Botões -->
+          <div class="d-flex justify-content-end gap-2">
+            <a
+              href="{{ url_for('main.dashboard') }}"
+              class="btn btn-light border"
+              >Cancelar</a
+            >
+            <button type="submit" class="btn btn-primary px-4 fw-bold">
+              Salvar Pedido
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Script ViaCEP -->
 <script>
-    document.getElementById("cep").addEventListener("keyup", function () {
-        let cep = this.value.replace(/\D/g, "");
+  document.getElementById("cep").addEventListener("keyup", function () {
+    let cep = this.value.replace(/\D/g, "");
 
-        if (cep.length === 8) {
-            fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.erro) {
-                        document.getElementById("endereco").value = data.logradouro || "";
-                        document.getElementById("bairro").value = data.bairro || "";
-                        document.getElementById("cidade").value = data.localidade || "";
-                        document.getElementById("uf").value = data.uf || "";
-                    }
-                });
-        }
-    });
+    if (cep.length === 8) {
+      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (!data.erro) {
+            document.getElementById("endereco").value = data.logradouro || "";
+            document.getElementById("bairro").value = data.bairro || "";
+            document.getElementById("cidade").value = data.localidade || "";
+            document.getElementById("uf").value = data.uf || "";
+          }
+        });
+    }
+  });
 </script>
 {% endblock %}

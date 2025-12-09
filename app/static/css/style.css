@@ -3,333 +3,445 @@
    ========================================= */
 
 :root {
-    /* --- PALETA DE CORES (Baseada na Logo) --- */
-    --color-primary-dark: #1a4a7c;  /* Azul Profundo (Navbar, Títulos) */
-    --color-primary: #2c5282;       /* Azul Médio (Links, Botões Padrão) */
-    
-    /* Acento (Ciano/Teal da Logo) - Usado para Destaques */
-    --color-accent: #00a3c4;        
-    --color-accent-hover: #008ba3;
+  /* --- PALETA DE CORES (Baseada na Logo) --- */
+  --color-primary-dark: #1a4a7c; /* Azul Profundo (Navbar, Títulos) */
+  --color-primary: #2c5282; /* Azul Médio (Links, Botões Padrão) */
 
-    /* Neutros */
-    --color-bg-body: #f4f7f9;       /* Fundo da Página (Cinza Azulado) */
-    --color-bg-white: #ffffff;      /* Fundo de Cards e Navbar */
-    --color-text-main: #2d3748;     /* Texto Principal */
-    --color-text-muted: #718096;    /* Texto Secundário */
-    
-    /* Status */
-    --color-success: #2f855a;       /* Verde Sóbrio */
-    --color-warning: #c05621;       /* Laranja Queimado */
-    --color-danger: #e53e3e;        /* Vermelho */
+  /* Acento (Ciano/Teal da Logo) - Usado para Destaques */
+  --color-accent: #00a3c4;
+  --color-accent-hover: #008ba3;
 
-    /* --- EFEITOS VISUAIS --- */
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-pill: 50rem;
+  /* Neutros */
+  --color-bg-body: #f4f7f9; /* Fundo da Página (Cinza Azulado) */
+  --color-bg-white: #ffffff; /* Fundo de Cards e Navbar */
+  --color-text-main: #2d3748; /* Texto Principal */
+  --color-text-muted: #718096; /* Texto Secundário */
+
+  /* Status */
+  --color-success: #2f855a; /* Verde Sóbrio */
+  --color-warning: #c05621; /* Laranja Queimado */
+  --color-danger: #e53e3e; /* Vermelho */
+
+  /* --- EFEITOS VISUAIS --- */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 50rem;
 }
 
 /* =========================================
    RESET E TIPOGRAFIA
    ========================================= */
 body {
-    background-color: var(--color-bg-body);
-    font-family: 'Poppins', sans-serif;
-    color: var(--color-text-main);
-    line-height: 1.6;
+  background-color: var(--color-bg-body);
+  font-family: "Poppins", sans-serif;
+  color: var(--color-text-main);
+  line-height: 1.6;
 }
 
 .fs-4 {
-    font-family: garamond, 'Times New Roman', serif;
-    font-size: 1.25rem;
+  font-family: garamond, "Times New Roman", serif;
+  font-size: 1.25rem;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    color: var(--color-primary-dark);
-    font-weight: 700;
-    letter-spacing: -0.5px;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 a {
-    color: var(--color-primary);
-    text-decoration: none;
-    transition: color 0.2s ease;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 a:hover {
-    color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* --- ÍCONES GERAIS --- */
 /* Por padrão, ícones soltos na página ganham a cor de destaque (Ciano) */
 .bi {
-    color: var(--color-accent);
-    transition: color 0.2s;
+  color: var(--color-accent);
+  transition: color 0.2s;
 }
 
 /* =========================================
    NAVBAR (FUNDO BRANCO)
    ========================================= */
 .navbar {
-    background-color: rgba(255, 255, 255, 0.98) !important;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    padding: 1rem 0;
-    border-bottom: 1px solid transparent;
-    height: auto;
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  padding: 1rem 0;
+  border-bottom: 1px solid transparent;
+  height: auto;
 }
 
 .navbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease-in-out;
 }
 
 .navbar-brand img {
-    max-height: 60px;
-    width: auto;
-    transition: max-height 0.3s ease-in-out;
-    backface-visibility: hidden;
+  max-height: 60px;
+  width: auto;
+  transition: max-height 0.3s ease-in-out;
+  backface-visibility: hidden;
 }
 
 .navbar-brand span {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-primary-dark);
-    transition: font-size 0.3s ease-in-out;
-    line-height: 1;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  transition: font-size 0.3s ease-in-out;
+  line-height: 1;
 }
 
 .navbar-scrolled {
-    background-color: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06) !important;
 }
 
 .navbar-scrolled .navbar-brand img {
-    max-height: 40px !important;
+  max-height: 40px !important;
 }
 
 .navbar-scrolled .navbar-brand span {
-    font-size: 1.2rem !important;
+  font-size: 1.2rem !important;
 }
 
 .navbar-nav .nav-link {
-    color: var(--color-text-muted) !important;
-    font-weight: 500;
-    transition: color 0.2s;
+  color: var(--color-text-muted) !important;
+  font-weight: 500;
+  transition: color 0.2s;
 }
-.navbar-nav .nav-link:hover { color: var(--color-accent) !important; }
+.navbar-nav .nav-link:hover {
+  color: var(--color-accent) !important;
+}
 
 .navbar .btn-outline-light {
-    color: var(--color-primary) !important;
-    border-color: var(--color-primary) !important;
-    transition: all 0.3s;
-    padding: 0.375rem 0.75rem;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  transition: all 0.3s;
+  padding: 0.375rem 0.75rem;
 }
 
 .navbar-scrolled .btn-outline-light {
-    font-size: 0.85rem;
+  font-size: 0.85rem;
 }
 /* =========================================
    BOTÕES
    ========================================= */
 .btn {
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    padding: 0.6rem 1.5rem;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .btn-sm {
-    padding: 0.4rem 1rem;
-    font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
 }
 
 /* --- CORREÇÃO DOS ÍCONES NOS BOTÕES --- */
 /* O ícone dentro do botão deve SEMPRE ter a mesma cor do texto do botão */
 .btn .bi {
-    color: currentColor !important;
-    margin-right: 4px; /* Espacinho extra pro texto */
+  color: currentColor !important;
+  margin-right: 4px; /* Espacinho extra pro texto */
 }
 
 /* Botão de Destaque (Novo Cadastro / Exportar Excel) */
 /* Usamos a classe .btn-success para mapear para a cor Ciano da marca */
 .btn-success {
-    background-color: var(--color-accent) !important;
-    border-color: var(--color-accent) !important;
-    color: #fff !important; /* Texto Branco */
+  background-color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: #fff !important; /* Texto Branco */
 }
 .btn-success:hover {
-    background-color: var(--color-accent-hover) !important;
-    border-color: var(--color-accent-hover) !important;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+  background-color: var(--color-accent-hover) !important;
+  border-color: var(--color-accent-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Botão Primário (Azul Oceano) */
 .btn-primary {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-    color: #fff !important;
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff !important;
 }
 .btn-primary:hover {
-    background-color: var(--color-primary-dark);
-    border-color: var(--color-primary-dark);
-    transform: translateY(-2px);
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  transform: translateY(-2px);
 }
 
 /* Botão Outline (Bordas) */
 .btn-outline-primary {
-    color: var(--color-primary);
-    border-color: var(--color-primary);
-    background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background-color: transparent;
 }
 .btn-outline-primary:hover {
-    background-color: var(--color-primary);
-    color: #fff !important;
+  background-color: var(--color-primary);
+  color: #fff !important;
 }
 
 /* Botão Link Maps (Vermelho/Danger) */
 .btn-outline-danger {
-    color: var(--color-danger);
-    border-color: var(--color-danger);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
 }
 .btn-outline-danger:hover {
-    background-color: var(--color-danger);
-    color: #fff !important;
+  background-color: var(--color-danger);
+  color: #fff !important;
 }
 
 /* =========================================
    CARDS (CARTÕES)
    ========================================= */
 .card {
-    border: none;
-    border-radius: var(--radius-lg);
-    background-color: var(--color-bg-white);
-    box-shadow: var(--shadow-md);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    overflow: hidden;
+  border: none;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-white);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
 }
 
 .card:hover {
-    /* Efeito de flutuar levemente */
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+  /* Efeito de flutuar levemente */
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
 .card-header {
-    background-color: var(--color-bg-white);
-    border-bottom: 1px solid #edf2f7;
-    padding: 1.5rem;
-    font-weight: 700;
-    color: var(--color-primary-dark);
+  background-color: var(--color-bg-white);
+  border-bottom: 1px solid #edf2f7;
+  padding: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
 }
 
 .card-body {
-    padding: 1.5rem;
+  padding: 1.5rem;
 }
 
 /* =========================================
    TABELAS
    ========================================= */
 .table-responsive {
-    border-radius: var(--radius-lg);
-    background: var(--color-bg-white);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-white);
 }
 
 .table {
-    margin-bottom: 0;
-    border-collapse: separate;
-    border-spacing: 0;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 /* Cabeçalho */
 .table thead th {
-    background-color: var(--color-primary-dark);
-    color: #ffffff;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.5px;
-    padding: 1rem;
-    border: none;
+  background-color: var(--color-primary-dark);
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  padding: 1rem;
+  border: none;
 }
 
 /* Linhas */
 .table tbody tr {
-    transition: background-color 0.2s;
+  transition: background-color 0.2s;
 }
 .table tbody tr:hover {
-    background-color: #f0f7ff !important; /* Azul bem clarinho no hover */
+  background-color: #f0f7ff !important; /* Azul bem clarinho no hover */
 }
 
 /* Células */
 .table td {
-    vertical-align: middle;
-    padding: 1rem;
-    border-top: 1px solid #edf2f7;
-    color: var(--color-text-main);
+  vertical-align: middle;
+  padding: 1rem;
+  border-top: 1px solid #edf2f7;
+  color: var(--color-text-main);
 }
 
 /* Coluna de Identificação (Admin) */
 .table td.bg-light {
-    background-color: #f8fafc !important;
-    border-right: 3px solid var(--color-accent); /* Detalhe Ciano */
+  background-color: #f8fafc !important;
+  border-right: 3px solid var(--color-accent); /* Detalhe Ciano */
 }
 
 /* =========================================
    FORMULÁRIOS
    ========================================= */
-.form-control, .form-select {
-    border-radius: var(--radius-md);
-    border: 1px solid #e2e8f0;
-    padding: 0.6rem 1rem;
-    color: var(--color-text-main);
+.form-control,
+.form-select {
+  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+  padding: 0.6rem 1rem;
+  color: var(--color-text-main);
 }
 
-.form-control:focus, .form-select:focus {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px rgba(0, 163, 196, 0.15); /* Brilho Ciano */
-    outline: none;
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(0, 163, 196, 0.15); /* Brilho Ciano */
+  outline: none;
 }
 
 .form-label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
-    margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
 }
 
 /* Input readonly (Campos travados de endereço) */
 .form-control[readonly] {
-    background-color: #edf2f7;
-    color: var(--color-text-muted);
+  background-color: #edf2f7;
+  color: var(--color-text-muted);
 }
 
 /* =========================================
    BADGES (ETIQUETAS)
    ========================================= */
 .badge {
-    padding: 0.5em 0.9em;
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    letter-spacing: 0.3px;
+  padding: 0.5em 0.9em;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 /* Reestilizando cores padrão para a paleta */
-.bg-secondary { background-color: var(--color-text-muted) !important; }
-.bg-success   { background-color: var(--color-success) !important; }
-.bg-warning   { background-color: #d69e2e !important; color: #fff !important; }
-.bg-danger    { background-color: var(--color-danger) !important; }
-.bg-light     { background-color: #edf2f7 !important; color: var(--color-text-main) !important; }
+.bg-secondary {
+  background-color: var(--color-text-muted) !important;
+}
+.bg-success {
+  background-color: var(--color-success) !important;
+}
+.bg-warning {
+  background-color: #d69e2e !important;
+  color: #fff !important;
+}
+.bg-danger {
+  background-color: var(--color-danger) !important;
+}
+.bg-light {
+  background-color: #edf2f7 !important;
+  color: var(--color-text-main) !important;
+}
 
 /* Utilitários de Texto */
-.text-primary { color: var(--color-primary) !important; }
-.text-dark    { color: var(--color-primary-dark) !important; }
-.text-muted   { color: var(--color-text-muted) !important; }
+.text-primary {
+  color: var(--color-primary) !important;
+}
+.text-dark {
+  color: var(--color-primary-dark) !important;
+}
+.text-muted {
+  color: var(--color-text-muted) !important;
+}
+
+/* =========================================
+   MODO ESCURO (NÃO ALTERA O QUE EXISTE)
+   ========================================= */
+
+body.dark-mode {
+  --color-bg-body: #0f161e;
+  --color-bg-white: #1a2433;
+
+  --color-text-main: #e2e8f0;
+  --color-text-muted: #94a3b8;
+
+  --color-primary-dark: #4ca3ff;
+  --color-primary: #60afff;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+}
+
+/* Corrige tabelas em modo escuro */
+body.dark-mode .table thead th {
+  background-color: var(--color-primary-dark) !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode .table td.bg-light {
+  background-color: #1f2937 !important;
+}
+
+/* Navbar escura */
+body.dark-mode .navbar {
+  background-color: #1a2433 !important;
+  border-bottom: 1px solid #2d3748 !important;
+}
+
+body.dark-mode .navbar .nav-link {
+  color: var(--color-text-muted) !important;
+}
+
+body.dark-mode .navbar .nav-link:hover {
+  color: var(--color-accent) !important;
+}
+
+/* Cards */
+body.dark-mode .card {
+  background-color: #1a2433 !important;
+}
+
+body.dark-mode .card-header {
+  background-color: #1e2a3a !important;
+  color: var(--color-primary);
+}
+
+/* Forms */
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+  background-color: #1e2a3a;
+  border: 1px solid #334155;
+  color: var(--color-text-main);
+}
+
+body.dark-mode .form-control::placeholder {
+  color: #64748b;
+}
+
+body.dark-mode .form-control:focus {
+  background-color: #283548;
+}
+
+/* Badges */
+body.dark-mode .bg-light {
+  background-color: #1f2937 !important;
+}
+
+/* Alertas */
+body.dark-mode .alert {
+  background-color: #1e293b;
+  color: var(--color-text-main);
+  border: 1px solid #334155;
+}

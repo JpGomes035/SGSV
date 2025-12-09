@@ -1,103 +1,117 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-secondary"><i class="bi bi-list-task"></i> Minhas Solicitações</h2>
-    <a href="{{ url_for('main.novo') }}" class="btn btn-success shadow-sm">
-        <i class="bi bi-plus-lg"></i> Nova Solicitação
-    </a>
+  <h2 class="text-secondary">
+    <i class="bi bi-list-task"></i> Minhas Solicitações
+  </h2>
+  <a href="{{ url_for('main.novo') }}" class="btn btn-success shadow-sm">
+    <i class="bi bi-plus-lg"></i> Nova Solicitação
+  </a>
 </div>
 
 <div class="card shadow-sm">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Data Planejada</th>
-                        <!-- Aumentei a largura para caber o endereço completo -->
-                        <th style="width: 45%;">Localização / Motivo</th>
-                        <th class="text-center">Situação</th>
-                        <th>Protocolo DECEA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in solicitacoes %}
-                    <tr>
-                        <td>
-                            <strong class="text-dark">
-                                {{ p.data_agendamento[8:10] }}-{{ p.data_agendamento[5:7] }}-{{ p.data_agendamento[2:4]
-                                }}
-                            </strong>
-                            <br>
-                            <small class="text-muted">{{ p.hora_agendamento }}</small>
-                        </td>
-                        <td>
-                            <div class="d-flex flex-column">
-                                <!-- LÓGICA DE ENDEREÇO CORRIGIDA -->
-                                {% if p.logradouro %}
-                                <!-- Caso Novo: Mostra Logradouro, Número, Bairro e Cidade -->
-                                <span class="fw-bold text-dark">
-                                    {{ p.logradouro }}, {{ p.numero or 'S/N' }}
-                                </span>
-                                <small class="text-muted">
-                                    {{ p.bairro }} - {{ p.cidade }}/{{ p.uf }}
-                                </small>
-                                {% else %}
-                                <!-- Caso Antigo ou Fallback: Tenta mostrar o campo antigo 'endereco' -->
-                                <span class="fw-bold text-dark">
-                                    {{ p.endereco or 'Endereço não informado' }}
-                                </span>
-                                {% endif %}
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Data Planejada</th>
+            <!-- Aumentei a largura para caber o endereço completo -->
+            <th style="width: 45%">Localização / Motivo</th>
+            <th class="text-center">Situação</th>
+            <th>Protocolo DECEA</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in solicitacoes %}
+          <tr>
+            <td>
+              <strong class="text-dark">
+                {{ p.data_agendamento[8:10] }}-{{ p.data_agendamento[5:7] }}-{{
+                p.data_agendamento[2:4] }}
+              </strong>
+              <br />
+              <small class="text-muted">{{ p.hora_agendamento }}</small>
+            </td>
+            <td>
+              <div class="d-flex flex-column">
+                <!-- LÓGICA DE ENDEREÇO CORRIGIDA -->
+                {% if p.logradouro %}
+                <!-- Caso Novo: Mostra Logradouro, Número, Bairro e Cidade -->
+                <span class="fw-bold text-dark">
+                  {{ p.logradouro }}, {{ p.numero or 'S/N' }}
+                </span>
+                <small class="text-muted">
+                  {{ p.bairro }} - {{ p.cidade }}/{{ p.uf }}
+                </small>
+                {% else %}
+                <!-- Caso Antigo ou Fallback: Tenta mostrar o campo antigo 'endereco' -->
+                <span class="fw-bold text-dark">
+                  {{ p.endereco or 'Endereço não informado' }}
+                </span>
+                {% endif %}
 
-                                <div class="mt-1">
-                                    <span class="badge bg-light text-dark border">{{ p.foco }}</span>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            {% if p.status == 'APROVADO' %}
-                            <span class="badge bg-success rounded-pill">Aprovado</span>
-                            {% elif p.status == 'NEGADO' %}
-                            <span class="badge bg-danger rounded-pill" data-bs-toggle="tooltip" data-bs-placement="top"
-                                title="{{ p.justificativa }}">
-                                Negado
-                            </span>
-                            <div class="small text-danger mt-1 fw-bold" style="cursor: help; font-size: 0.75rem"
-                                data-bs-toggle="tooltip" title="{{ p.justificativa }}">
-                                Ver Motivo
-                            </div>
-                            {% else %}
-                            <span class="badge bg-warning text-dark rounded-pill">Em Análise</span>
-                            {% endif %}
-                        </td>
-                        <td class="font-monospace text-primary fw-bold">
-                            {{ p.protocolo or '-' }}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="4" class="text-center py-5 text-muted">
-                            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-                            Você ainda não tem solicitações de voo.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                <div class="mt-1">
+                  <span class="badge bg-light text-dark border"
+                    >{{ p.foco }}</span
+                  >
+                </div>
+              </div>
+            </td>
+            <td class="text-center">
+              {% if p.status == 'APROVADO' %}
+              <span class="badge bg-success rounded-pill">Aprovado</span>
+              {% elif p.status == 'NEGADO' %}
+              <span
+                class="badge bg-danger rounded-pill"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="{{ p.justificativa }}"
+              >
+                Negado
+              </span>
+              <div
+                class="small text-danger mt-1 fw-bold"
+                style="cursor: help; font-size: 0.75rem"
+                data-bs-toggle="tooltip"
+                title="{{ p.justificativa }}"
+              >
+                Ver Motivo
+              </div>
+              {% else %}
+              <span class="badge bg-warning text-dark rounded-pill"
+                >Em Análise</span
+              >
+              {% endif %}
+            </td>
+            <td class="font-monospace text-primary fw-bold">
+              {{ p.protocolo or '-' }}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="text-center py-5 text-muted">
+              <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+              Você ainda não tem solicitações de voo.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </div>
 </div>
 
 <!-- Script necessário para ativar os Tooltips do Bootstrap 5 -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+  document.addEventListener("DOMContentLoaded", function () {
+    var tooltipTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+  });
 </script>
 
 {% endblock %}

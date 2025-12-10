@@ -48,8 +48,17 @@ def dashboard():
     print(f"DEBUG: FILTRO SQL A SER EXECUTADO: {query.statement.compile(compile_kwargs={'literal_binds': True})}")
     print("===============================\n")
     
-    lista_solicitacoes = query.all()
-    return render_template('dashboard.html', nome=session.get('user_nome'), solicitacoes=lista_solicitacoes)
+   # paginação
+    page = request.args.get("page", 1, type=int)
+    paginacao = query.paginate(page=page, per_page=9)
+
+    return render_template(
+    'dashboard.html',
+    nome=session.get('user_nome'),
+    solicitacoes=paginacao.items,
+    paginacao=paginacao
+)
+
 
 # --- PAINEL ADMIN (com filtros) ---
 @bp.route('/admin')
@@ -75,9 +84,17 @@ def admin_dashboard():
     if filtro_regiao:
         query = query.filter(Usuario.regiao.ilike(f"%{filtro_regiao}%"))
 
-    pedidos_filtrados = query.order_by(Solicitacao.data_criacao.desc()).all()
+    page = request.args.get("page", 1, type=int)
 
-    return render_template('admin.html', pedidos=pedidos_filtrados)
+    paginacao = query.order_by(
+    Solicitacao.data_criacao.desc()
+    ).paginate(page=page, per_page=9)
+
+    return render_template(
+    'admin.html',
+    pedidos=paginacao.items,
+    paginacao=paginacao
+)
 
 @bp.route('/admin/exportar_excel')
 def exportar_excel():
@@ -311,3 +328,8 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('main.login'))
+
+@bp.route("/forcar_erro")
+def forcar_erro():
+    1 / 0  # erro proposital
+    return "nunca vai chegar aqui"

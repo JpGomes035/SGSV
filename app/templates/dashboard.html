@@ -98,6 +98,38 @@
           {% endfor %}
         </tbody>
       </table>
+      {% if paginacao.pages > 1 %}
+      <nav aria-label="Navegação de páginas" class="mt-3">
+        <ul class="pagination justify-content-center">
+          <li
+            class="page-item {% if not paginacao.has_prev %}disabled{% endif %}"
+          >
+            <a class="page-link" href="?page={{ paginacao.prev_num }}"
+              >Anterior</a
+            >
+          </li>
+
+          {% for pagina in paginacao.iter_pages(left_edge=1, right_edge=1,
+          left_current=1, right_current=2) %} {% if pagina %}
+          <li
+            class="page-item {% if pagina == paginacao.page %}active{% endif %}"
+          >
+            <a class="page-link" href="?page={{ pagina }}">{{ pagina }}</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %} {% endfor %}
+
+          <li
+            class="page-item {% if not paginacao.has_next %}disabled{% endif %}"
+          >
+            <a class="page-link" href="?page={{ paginacao.next_num }}"
+              >Próxima</a
+            >
+          </li>
+        </ul>
+      </nav>
+      {% endif %}
     </div>
   </div>
 </div>

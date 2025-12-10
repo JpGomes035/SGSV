@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app import db
 from app.models import Usuario, Solicitacao
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, date # AJUSTADO: Importado datetime e date
+from datetime import datetime, date
 from flask import json
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -39,8 +39,8 @@ def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
 
-    # AJUSTE CHAVE: Se for admin OU operario, redireciona para o painel de gestão
-    if session.get('user_tipo') in ['admin', 'operario']:
+    # AJUSTE CHAVE: Se for admin, operario OU visualizar, redireciona para o painel de gestão
+    if session.get('user_tipo') in ['admin', 'operario', 'visualizar']:
         return redirect(url_for('main.admin_dashboard'))
 
     try:
@@ -62,7 +62,6 @@ def dashboard():
     # 3. Lógica da Paginação:
     page = request.args.get("page", 1, type=int)
 
-    # Ordena e executa a paginação (6 itens por página no primeiro código. Mantido 6.)
     paginacao = query.order_by(
         Solicitacao.data_criacao.desc()
     ).paginate(page=page, per_page=6, error_out=False)
@@ -74,14 +73,17 @@ def dashboard():
         paginacao=paginacao
     )
 
-# --- PAINEL ADMIN/OPERARIO (com filtros) ---
+# --- PAINEL DE GESTÃO (Visualização para todos) ---
 @bp.route('/admin')
 def admin_dashboard():
-    # AJUSTE CHAVE: Permite 'admin' E 'operario'
-    if 'user_id' not in session or session.get('user_tipo') not in ['admin', 'operario']:
+    # AJUSTE CHAVE: Permite 'admin', 'operario' E 'visualizar'
+    if 'user_id' not in session or session.get('user_tipo') not in ['admin', 'operario', 'visualizar']:
         flash('Acesso restrito.', 'danger')
         return redirect(url_for('main.login'))
-
+    
+    # Flag para controlar a renderização dos botões de edição no template
+    is_editable = session.get('user_tipo') in ['admin', 'operario']
+    
     # --- Captura filtros enviados pelo GET ---
     filtro_status = request.args.get("status")
     filtro_unidade = request.args.get("unidade")
@@ -102,7 +104,6 @@ def admin_dashboard():
 
     page = request.args.get("page", 1, type=int)
 
-    # per_page=6 (Primeiro código) vs per_page=9 (Segundo código). Mantido 6.
     paginacao = query.order_by(
     Solicitacao.data_criacao.desc()
     ).paginate(page=page, per_page=6)
@@ -110,15 +111,16 @@ def admin_dashboard():
     return render_template(
     'admin.html',
     pedidos=paginacao.items,
-    paginacao=paginacao
+    paginacao=paginacao,
+    is_editable=is_editable # Variável enviada ao template para controle de formulário
 )
 
 @bp.route('/admin/exportar_excel')
 def exportar_excel():
-    # AJUSTE CHAVE: Permite 'admin' E 'operario'
+    # AJUSTE CHAVE: Permite APENAS 'admin' E 'operario'
     if 'user_id' not in session or session.get('user_tipo') not in ['admin', 'operario']:
-        flash('Acesso restrito.', 'danger')
-        return redirect(url_for('main.login'))
+        flash('Permissão negada para exportar.', 'danger')
+        return redirect(url_for('main.admin_dashboard'))
 
     # --- Captura filtros ---
     filtro_status = request.args.get("status")
@@ -187,7 +189,6 @@ def exportar_excel():
         # Formatação de data (Corrigido o erro de importação de datetime)
         if p.data_agendamento:
             try:
-                # CORREÇÃO: Usando date e datetime importados globalmente
                 if isinstance(p.data_agendamento, (date, datetime)): 
                     data_formatada = p.data_agendamento.strftime("%d-%m-%y")
                 # Se for string (caso do primeiro código)
@@ -236,7 +237,7 @@ def exportar_excel():
     # Ajuste automático de largura (Lógica do primeiro código, mas com a correção de 'column' para 'column_letter')
     for col in ws.columns:
         max_length = 0
-        column_letter = col[0].column_letter # Usando a variável corrigida
+        column_letter = col[0].column_letter 
 
         for cell in col:
             try:
@@ -256,7 +257,7 @@ def exportar_excel():
     # Enviar arquivo
     return send_file(
         output,
-        download_name="relatorio_solicitacoes.xlsx", # Nome do primeiro código
+        download_name="relatorio_solicitacoes.xlsx",
         as_attachment=True,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
@@ -265,24 +266,20 @@ def exportar_excel():
 # --- ROTA DE ATUALIZAÇÃO ---
 @bp.route('/admin/atualizar/<int:id>', methods=['POST'])
 def atualizar(id):
-    # AJUSTE CHAVE: Permite 'admin' E 'operario'
+    # AJUSTE CHAVE: Permite APENAS 'admin' E 'operario'
     if session.get('user_tipo') not in ['admin', 'operario']:
         flash('Permissão negada para esta ação.', 'danger')
-        return redirect(url_for('main.login'))
+        return redirect(url_for('main.admin_dashboard'))
 
     pedido = Solicitacao.query.get_or_404(id)
 
-    # Campos do primeiro código:
-    # pedido.coords = request.form.get('coords') # Substituído por latitude/longitude
+    # Campos de Geo do segundo código:
     pedido.protocolo = request.form.get('protocolo')
     pedido.status = request.form.get('status')
     pedido.justificativa = request.form.get('justificativa')
-
-    # Campos de Geo do segundo código:
     pedido.latitude = request.form.get('latitude')
     pedido.longitude = request.form.get('longitude')
 
-    # Campo 'coords' do primeiro código não existe mais na atualização, pois foi substituído por lat/long.
 
     db.session.commit()
     flash('Pedido atualizado com sucesso!', 'success')
@@ -295,19 +292,15 @@ def novo():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
 
-    # from datetime import date (Movido para o topo)
-    # Trava data aqui pra não inserir uma anterior que hoje
     hoje = date.today().isoformat()
 
     if request.method == 'POST':
         try:
             user_id_int = int(session['user_id'])
 
-            # Conversão de Data e Hora (do segundo código, mais robusto)
             data_str = request.form.get('data')
             hora_str = request.form.get('hora')
 
-            # Se vier a string, converte para objeto date/time (útil para bancos que aceitam objetos)
             if data_str:
                 data_obj = datetime.strptime(data_str, '%Y-%m-%d').date()
             else:
@@ -318,36 +311,30 @@ def novo():
             else:
                 hora_obj = None
 
-            # Conversão de Sim/Não para Booleano (True/False) do segundo código
             criadouro_bool = request.form.get('criadouro') == 'sim'
             apoio_cet_bool = request.form.get('apoio_cet') == 'sim'
 
 
             nova_solicitacao = Solicitacao(
-                # Data e hora (usando objetos date/time para melhor compatibilidade com DB)
                 data_agendamento=data_obj,
                 hora_agendamento=hora_obj,
 
-                # Endereço
                 cep=request.form.get('cep'),
                 logradouro=request.form.get('logradouro'),
                 bairro=request.form.get('bairro'),
                 cidade=request.form.get('cidade'),
                 numero=request.form.get('numero'),
                 uf=request.form.get('uf'),
-                complemento=request.form.get('complemento'), # Novo campo do segundo código
+                complemento=request.form.get('complemento'), 
 
-                # Foco
                 foco=request.form.get('foco'),
 
-                # Novos Campos do segundo código
                 tipo_visita=request.form.get('tipo_visita'),
                 altura_voo=request.form.get('altura_voo'),
                 criadouro=criadouro_bool,
                 apoio_cet=apoio_cet_bool,
                 observacao=request.form.get('observacao'),
 
-                # Geo (novos campos do segundo código)
                 latitude=request.form.get('latitude'),
                 longitude=request.form.get('longitude'),
 
@@ -374,8 +361,8 @@ def novo():
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:
-        # AJUSTE CHAVE: Se for admin OU operario, redireciona para o painel de gestão
-        if session.get('user_tipo') in ['admin', 'operario']:
+        # AJUSTE CHAVE: Redireciona para admin_dashboard se for admin, operario OU visualizar
+        if session.get('user_tipo') in ['admin', 'operario', 'visualizar']:
             return redirect(url_for('main.admin_dashboard'))
         return redirect(url_for('main.dashboard'))
 
@@ -387,15 +374,13 @@ def login():
             session['user_nome'] = user.nome_uvis
             session['user_tipo'] = user.tipo_usuario
 
-            # Adicionada mensagem de sucesso do segundo código
             flash(f'Bem-vindo, {user.nome_uvis}! Login realizado com sucesso.', 'success')
 
-            # AJUSTE CHAVE: Se for admin OU operario, redireciona para o painel de gestão
-            if user.tipo_usuario in ['admin', 'operario']:
+            # AJUSTE CHAVE: Redireciona para admin_dashboard se for admin, operario OU visualizar
+            if user.tipo_usuario in ['admin', 'operario', 'visualizar']:
                 return redirect(url_for('main.admin_dashboard'))
             return redirect(url_for('main.dashboard'))
         else:
-            # Mensagem de erro do segundo código (mais detalhada)
             flash('Login ou senha incorretos. Tente novamente.', 'danger')
 
     return render_template('login.html')
@@ -420,10 +405,10 @@ def relatorios():
     # VERIFICAÇÃO CHAVE: APENAS 'admin' tem acesso
     if session.get('user_tipo') != 'admin':
         flash('Acesso restrito aos administradores.', 'danger')
-        return redirect(url_for('main.dashboard'))
+        # Redireciona para o painel de gestão, que o 'operario' e 'visualizar' podem ver
+        return redirect(url_for('main.admin_dashboard')) 
 
-    # ---------- 1. Coleta e Filtro de Parâmetros da URL ----------
-
+    # --- CÓDIGO DE RELATÓRIOS (Com Novas Métricas) ---
     mes_atual = int(request.args.get('mes', datetime.now().month))
     ano_atual = int(request.args.get('ano', datetime.now().year))
 
@@ -435,14 +420,14 @@ def relatorios():
         db.func.strftime('%Y-%m', Solicitacao.data_criacao) == filtro_data
     )
 
-    # ---------- 2. Coleta de dados com Filtro e Conversão ----------
-
+    # Métricas Principais
     total_solicitacoes = query_filtrada.count()
     total_aprovadas = query_filtrada.filter_by(status='APROVADO').count()
     total_recusadas = query_filtrada.filter_by(status='NEGADO').count()
     total_analise = query_filtrada.filter_by(status='EM ANÁLISE').count()
+    total_pendentes = query_filtrada.filter_by(status='PENDENTE').count()
 
-    # Por região (join explícito do segundo código) - FILTRADO!
+    # Dados por Região (Mantido)
     dados_regiao_raw = (
         db.session.query(Usuario.regiao, db.func.count(Solicitacao.id))
         .join(Usuario, Usuario.id == Solicitacao.usuario_id)
@@ -450,10 +435,50 @@ def relatorios():
         .group_by(Usuario.regiao)
         .all()
     )
-    dados_regiao = [tuple(row) for row in dados_regiao_raw] # Conversão para tuple (do segundo código)
+    dados_regiao = [tuple(row) for row in dados_regiao_raw]
+    
+    # ----------------------
+    # NOVAS MÉTRICAS DETALHADAS (Filtradas por Mês/Ano)
+    # ----------------------
+    
+    # Detalhamento de Solicitações por Status (Para incluir 'PENDENTE'/'EM ANÁLISE' de forma flexível)
+    dados_status_raw = (
+        db.session.query(Solicitacao.status, db.func.count(Solicitacao.id))
+        .filter(db.func.strftime('%Y-%m', Solicitacao.data_criacao) == filtro_data)
+        .group_by(Solicitacao.status)
+        .all()
+    )
+    dados_status = [tuple(row) for row in dados_status_raw]
 
+    # Solicitações por Foco
+    dados_foco_raw = (
+        db.session.query(Solicitacao.foco, db.func.count(Solicitacao.id))
+        .filter(db.func.strftime('%Y-%m', Solicitacao.data_criacao) == filtro_data)
+        .group_by(Solicitacao.foco)
+        .all()
+    )
+    dados_foco = [tuple(row) for row in dados_foco_raw]
+    
+    # Solicitações por Tipo de Visita
+    dados_tipo_visita_raw = (
+        db.session.query(Solicitacao.tipo_visita, db.func.count(Solicitacao.id))
+        .filter(db.func.strftime('%Y-%m', Solicitacao.data_criacao) == filtro_data)
+        .group_by(Solicitacao.tipo_visita)
+        .all()
+    )
+    dados_tipo_visita = [tuple(row) for row in dados_tipo_visita_raw]
 
-    # Solicitações por mês (gráfico) — SEM FILTRO de mês/ano, retorna todos os meses para o gráfico
+    # Solicitações por Altura de Voo
+    dados_altura_voo_raw = (
+        db.session.query(Solicitacao.altura_voo, db.func.count(Solicitacao.id))
+        .filter(db.func.strftime('%Y-%m', Solicitacao.data_criacao) == filtro_data)
+        .group_by(Solicitacao.altura_voo)
+        .order_by(Solicitacao.altura_voo)
+        .all()
+    )
+    dados_altura_voo = [tuple(row) for row in dados_altura_voo_raw]
+    
+    # Dados Mensais (Mantido)
     dados_mensais_raw = (
         db.session.query(
             db.func.strftime('%Y-%m', Solicitacao.data_criacao).label('mes'),
@@ -463,20 +488,25 @@ def relatorios():
         .order_by('mes')
         .all()
     )
-    dados_mensais = [tuple(row) for row in dados_mensais_raw] # Conversão para tuple (do segundo código)
-
+    dados_mensais = [tuple(row) for row in dados_mensais_raw]
 
     anos_disponiveis = sorted(list(set([d[0].split('-')[0] for d in dados_mensais])), reverse=True)
 
-    # ---------- 3. Renderização ----------
     return render_template(
         'relatorios.html',
         total_solicitacoes=total_solicitacoes,
         total_aprovadas=total_aprovadas,
         total_recusadas=total_recusadas,
         total_analise=total_analise,
+        total_pendentes=total_pendentes,
         dados_regiao=dados_regiao,
         dados_mensais=dados_mensais,
+        
+        # NOVOS DADOS
+        dados_status=dados_status,
+        dados_foco=dados_foco,
+        dados_tipo_visita=dados_tipo_visita,
+        dados_altura_voo=dados_altura_voo,
 
         mes_selecionado=mes_atual,
         ano_selecionado=ano_atual,

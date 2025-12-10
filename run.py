@@ -1,5 +1,6 @@
 from app import create_app, db
 from app.models import Usuario, Solicitacao
+from datetime import datetime # Importação adicionada para usar em Solicitacao (se necessário)
 
 app = create_app()
 
@@ -32,8 +33,8 @@ def verificar_banco():
                 print(f"--- Usuário Admin (original) encontrado (ID: {admin.id}) ---")
 
 
-            # --- 1.5. GARANTE OPERARIO (NOVO) ---
-            # Este usuário terá o tipo 'admin' para ter as mesmas permissões que o admin.
+            # --- 1.5. GARANTE OPERARIO ---
+            # Este usuário tem permissão total de alteração, mas não de relatório.
             operario = Usuario.query.filter_by(login='operario').first()
             if not operario:
                 print("--- Criando novo usuário Operario... ---")
@@ -42,15 +43,33 @@ def verificar_banco():
                     regiao="OPERACIONAL", 
                     codigo_setor="98",
                     login="operario",
-                    tipo_usuario="operario" # IMPORTANTE: Tipo 'admin' para ter as mesmas permissões que o 'admin' original
+                    tipo_usuario="operario"
                 )
-                operario.set_senha("operario123") # Defina uma senha inicial
+                operario.set_senha("operario123")
                 db.session.add(operario)
             else:
                 if operario.tipo_usuario != 'operario':
-                    # Garante que, se o usuário existir, ele tenha o tipo 'operario' para ter acesso total.
                     operario.tipo_usuario = 'operario' 
                 print(f"--- Usuário Operario encontrado (ID: {operario.id}) ---")
+
+
+            # --- 1.7. GARANTE VISUALIZAR (NOVO) ---
+            visualizar = Usuario.query.filter_by(login='visualizar').first()
+            if not visualizar:
+                print("--- Criando novo usuário Visualizar (somente leitura)... ---")
+                visualizar = Usuario(
+                    nome_uvis="Usuário Somente Leitura", 
+                    regiao="AUDITORIA", 
+                    codigo_setor="99",
+                    login="visualizar",
+                    tipo_usuario="visualizar" # NOVO TIPO DE USUÁRIO
+                )
+                visualizar.set_senha("1234") # Senha solicitada
+                db.session.add(visualizar)
+            else:
+                if visualizar.tipo_usuario != 'visualizar':
+                    visualizar.tipo_usuario = 'visualizar' 
+                print(f"--- Usuário Visualizar encontrado (ID: {visualizar.id}) ---")
 
 
             # --- 2. GARANTE LAPA ---
@@ -92,7 +111,6 @@ def verificar_banco():
             
             
             # --- CUIDADO: Cria pedido de teste para o TESTE (se necessário)
-            # Vamos garantir que pelo menos o 'teste' tem um pedido para testar a visualização
             if teste and not Solicitacao.query.filter_by(usuario_id=teste.id).first():
                 print("--- Criando pedido de teste para o novo usuário 'teste'... ---")
                 pedido = Solicitacao(

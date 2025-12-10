@@ -1,447 +1,653 @@
 /* =========================================
-   DESIGN SYSTEM - OCEANO AZUL
-   ========================================= */
+ DESIGN SYSTEM - OCEANO AZUL
+ ========================================= */
 
 :root {
-  /* --- PALETA DE CORES (Baseada na Logo) --- */
-  --color-primary-dark: #1a4a7c; /* Azul Profundo (Navbar, Títulos) */
-  --color-primary: #2c5282; /* Azul Médio (Links, Botões Padrão) */
+ /* --- PALETA DE CORES (Baseada na Logo) --- */
+ --color-primary-dark: #1a4a7c; /* Azul Profundo (Navbar, Títulos) */
+ --color-primary: #2c5282; /* Azul Médio (Links, Botões Padrão) */
 
-  /* Acento (Ciano/Teal da Logo) - Usado para Destaques */
-  --color-accent: #00a3c4;
-  --color-accent-hover: #008ba3;
+ /* Acento (Ciano/Teal da Logo) - Usado para Destaques */
+ --color-accent: #00a3c4;
+ --color-accent-hover: #008ba3;
 
-  /* Neutros */
-  --color-bg-body: #f4f7f9; /* Fundo da Página (Cinza Azulado) */
-  --color-bg-white: #ffffff; /* Fundo de Cards e Navbar */
-  --color-text-main: #2d3748; /* Texto Principal */
-  --color-text-muted: #718096; /* Texto Secundário */
+ /* Neutros */
+ --color-bg-body: #f4f7f9; /* Fundo da Página (Cinza Azulado) */
+ --color-bg-white: #ffffff; /* Fundo de Cards e Navbar */
+ --color-text-main: #2d3748; /* Texto Principal */
+ --color-text-muted: #718096; /* Texto Secundário */
 
-  /* Status */
-  --color-success: #2f855a; /* Verde Sóbrio */
-  --color-warning: #c05621; /* Laranja Queimado */
-  --color-danger: #e53e3e; /* Vermelho */
+ /* Status */
+ --color-success: #2f855a; /* Verde Sóbrio */
+ --color-warning: #c05621; /* Laranja Queimado */
+ --color-danger: #e53e3e; /* Vermelho */
 
-  /* --- EFEITOS VISUAIS --- */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+ /* --- EFEITOS VISUAIS --- */
+ --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+ --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+ --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-pill: 50rem;
+ --radius-sm: 8px;
+ --radius-md: 12px;
+ --radius-lg: 16px;
+ --radius-pill: 50rem;
+
+  /* --- LAYOUT DIMENSIONAL (NOVAS VARIÁVEIS) --- */
+  --navbar-height: 90px; /* Altura padrão da Navbar (reduzido de 100px para 90px) */
+  --sidebar-width: 230px; /* Largura padrão da Sidebar */
+  --sidebar-width-collapsed: 80px; /* Largura da Sidebar quando colapsada (só ícones) */
 }
 
 /* =========================================
-   RESET E TIPOGRAFIA
-   ========================================= */
+ RESET E TIPOGRAFIA
+ ========================================= */
 body {
-  background-color: var(--color-bg-body);
-  font-family: "Poppins", sans-serif;
-  color: var(--color-text-main);
-  line-height: 1.6;
+ background-color: var(--color-bg-body);
+ font-family: "Poppins", sans-serif;
+ color: var(--color-text-main);
+ line-height: 1.6;
+ /* Garante que o scroll seja suave */
+  scroll-behavior: smooth; 
+  /* 💡 Ajuste: Esconde o overflow-x para a transição da sidebar */
+  overflow-x: hidden;
 }
 
+/* Estilos de Tipografia (Mantidos) */
 .fs-4 {
-  font-family: garamond, "Times New Roman", serif;
-  font-size: 1.25rem;
+ font-family: garamond, "Times New Roman", serif;
+ font-size: 1.25rem;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--color-primary-dark);
-  font-weight: 700;
-  letter-spacing: -0.5px;
+h1, h2, h3, h4, h5, h6 {
+ color: var(--color-primary-dark);
+ font-weight: 700;
+ letter-spacing: -0.5px;
 }
 
 a {
-  color: var(--color-primary);
-  text-decoration: none;
-  transition: color 0.2s ease;
+ color: var(--color-primary);
+ text-decoration: none;
+ transition: color 0.2s ease;
 }
 a:hover {
-  color: var(--color-accent);
+ color: var(--color-accent);
 }
 
 /* --- ÍCONES GERAIS --- */
-/* Por padrão, ícones soltos na página ganham a cor de destaque (Ciano) */
 .bi {
-  color: var(--color-accent);
-  transition: color 0.2s;
+ color: var(--color-accent);
+ transition: color 0.2s;
 }
 
 /* =========================================
-   NAVBAR (FUNDO BRANCO)
-   ========================================= */
+ NAVBAR (FIXA NO TOPO)
+ ========================================= */
 .navbar {
-  background-color: rgba(255, 255, 255, 0.98) !important;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  padding: 1rem 0;
-  border-bottom: 1px solid transparent;
-  height: auto;
+  /* 💡 AJUSTE CRÍTICO: Fixa a Navbar no topo */
+  position: fixed; 
+  top: 0;
+  width: 100%;
+  z-index: 1030; /* Garante que fique acima da Sidebar (z-index: 1020) */
+  
+ background-color: rgba(255, 255, 255, 0.98) !important;
+ transition: all 0.3s ease;
+ padding: 0.5rem 0; /* Ajustado para caber na nova altura */
+ border-bottom: 1px solid transparent;
+ min-height: var(--navbar-height); /* Usa a nova variável */
 }
 
 .navbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.3s ease-in-out;
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ transition: all 0.3s ease-in-out;
 }
 
 .navbar-brand img {
-  max-height: 60px;
-  width: auto;
-  transition: max-height 0.3s ease-in-out;
-  backface-visibility: hidden;
+ max-height: 55px; /* Ajustado */
+ width: auto;
+ transition: max-height 0.3s ease-in-out;
+ backface-visibility: hidden;
 }
 
 .navbar-brand span {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-primary-dark);
-  transition: font-size 0.3s ease-in-out;
-  line-height: 1;
+ font-size: 1.5rem;
+ font-weight: 700;
+ color: var(--color-primary-dark);
+ transition: font-size 0.3s ease-in-out;
+ line-height: 1;
 }
 
 .navbar-scrolled {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06) !important;
+ background-color: rgba(255, 255, 255, 0.95) !important;
+ backdrop-filter: blur(10px);
+ box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06) !important;
+  min-height: 70px; /* Altura reduzida no scroll */
 }
 
 .navbar-scrolled .navbar-brand img {
-  max-height: 40px !important;
+ max-height: 40px !important;
 }
 
 .navbar-scrolled .navbar-brand span {
-  font-size: 1.2rem !important;
+ font-size: 1.2rem !important;
 }
 
 .navbar-nav .nav-link {
-  color: var(--color-text-muted) !important;
-  font-weight: 500;
-  transition: color 0.2s;
+ color: var(--color-text-muted) !important;
+ font-weight: 500;
+ transition: color 0.2s;
 }
 .navbar-nav .nav-link:hover {
-  color: var(--color-accent) !important;
+ color: var(--color-accent) !important;
 }
 
 .navbar .btn-outline-light {
-  color: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
-  transition: all 0.3s;
-  padding: 0.375rem 0.75rem;
+ color: var(--color-primary) !important;
+ border-color: var(--color-primary) !important;
+ transition: all 0.3s;
+ padding: 0.375rem 0.75rem;
 }
 
 .navbar-scrolled .btn-outline-light {
-  font-size: 0.85rem;
+ font-size: 0.85rem;
 }
+
 /* =========================================
-   BOTÕES
-   ========================================= */
-.btn {
-  border-radius: var(--radius-pill);
-  font-weight: 600;
-  padding: 0.6rem 1.5rem;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+ SIDEBAR E LAYOUT PRINCIPAL
+ ========================================= */
+
+/* 💡 Estrutura da Sidebar Fixa */
+.app-sidebar {
+ width: var(--sidebar-width);
+ position: fixed;
+ /* Começa exatamente abaixo da Navbar */
+ top: var(--navbar-height); 
+ left: 0;
+ /* Ocupa o restante da tela */
+ height: calc(100vh - var(--navbar-height));
+ background: var(--color-bg-white);
+ border-right: 1px solid rgba(0,0,0,0.08);
+ overflow-y: auto;
+ padding: 1.2rem;
+ z-index: 1020;
+ transition: all 0.3s ease; /* Transição suave */
 }
+
+/* 💡 Estrutura do Conteúdo Principal */
+.app-content {
+ /* Empurra o conteúdo para começar DEPOIS da sidebar */
+ margin-left: var(--sidebar-width) !important;
+ padding: 1.5rem;
+ /* Empurra o conteúdo para começar DEPOIS da Navbar fixa */
+ margin-top: var(--navbar-height) !important;
+ transition: margin-left 0.3s ease; /* Transição suave */
+}
+
+/* LINKS E ESTILOS DA SIDEBAR */
+.app-sidebar .nav-link {
+ color: var(--color-text-main);
+ padding: 0.65rem 1rem;
+ border-radius: .45rem;
+ font-weight: 500;
+ transition: 0.2s;
+ display: flex; /* Garante que ícone e texto fiquem na mesma linha */
+ align-items: center;
+}
+
+.app-sidebar .nav-link:hover {
+ background: rgba(0, 163, 196, 0.10); 
+ color: var(--color-accent);
+}
+
+.app-sidebar .nav-link.active {
+ background: rgba(0, 163, 196, 0.15);
+ color: var(--color-accent) !important;
+ border-left: 4px solid var(--color-accent);
+}
+
+/* ------------------------------------
+ ESTADO COLAPSADO (Classe no body)
+------------------------------------ */
+/* Quando o body tem a classe .sidebar-collapsed, a sidebar recolhe */
+body.sidebar-collapsed .app-sidebar {
+    width: var(--sidebar-width-collapsed); /* 80px */
+    padding-left: 0.5rem; 
+    padding-right: 0.5rem;
+    overflow-x: hidden;
+}
+
+body.sidebar-collapsed .app-sidebar .nav-link {
+    text-align: center;
+    padding: 0.65rem 0; /* Centraliza o ícone */
+}
+
+/* Esconde o texto, mas mantém o ícone */
+body.sidebar-collapsed .app-sidebar .nav-link span {
+    display: none; 
+}
+
+/* Remove a margem extra do ícone para centralizar */
+body.sidebar-collapsed .app-sidebar .nav-link .me-2 {
+    margin-right: 0 !important; 
+    font-size: 1.2rem; 
+}
+
+/* Ajusta o margin-left do conteúdo para a nova largura */
+body.sidebar-collapsed .app-content {
+    margin-left: var(--sidebar-width-collapsed) !important;
+}
+
+
+/* =========================================
+ RESPONSIVO (Mobile/Tablet)
+ ========================================= */
+@media (max-width: 992px) {
+    /* 💡 A Navbar NÃO é fixa no mobile para não ocupar muito espaço */
+    .navbar {
+        position: relative; 
+        min-height: auto;
+        z-index: auto;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* A Sidebar deve sumir em mobile (pois os links vão para o dropdown da Navbar) */
+    .app-sidebar {
+        display: none;
+    }
+
+    /* O conteúdo ocupa a largura total e NÃO precisa de margin-top fixo */
+    .app-content {
+        margin-left: 0 !important;
+        margin-top: 20px !important; /* Espaço para o cabeçalho após a Navbar */
+    }
+}
+
+
+/* =========================================
+ BOTÕES (Mantidos)
+ ========================================= */
+.btn {
+ border-radius: var(--radius-pill);
+ font-weight: 600;
+ padding: 0.6rem 1.5rem;
+ box-shadow: var(--shadow-sm);
+ transition: all 0.2s ease;
+ border: 1px solid transparent;
+}
+/* ... Restante dos estilos de Botões ... */
 
 .btn-sm {
-  padding: 0.4rem 1rem;
-  font-size: 0.85rem;
+ padding: 0.4rem 1rem;
+ font-size: 0.85rem;
 }
 
-/* --- CORREÇÃO DOS ÍCONES NOS BOTÕES --- */
-/* O ícone dentro do botão deve SEMPRE ter a mesma cor do texto do botão */
 .btn .bi {
-  color: currentColor !important;
-  margin-right: 4px; /* Espacinho extra pro texto */
+ color: currentColor !important;
+ margin-right: 4px; 
 }
 
-/* Botão de Destaque (Novo Cadastro / Exportar Excel) */
-/* Usamos a classe .btn-success para mapear para a cor Ciano da marca */
+/* ... Estilos de Botão Primário, Sucesso, etc. ... */
 .btn-success {
-  background-color: var(--color-accent) !important;
-  border-color: var(--color-accent) !important;
-  color: #fff !important; /* Texto Branco */
+ background-color: var(--color-accent) !important;
+ border-color: var(--color-accent) !important;
+ color: #fff !important; 
 }
 .btn-success:hover {
-  background-color: var(--color-accent-hover) !important;
-  border-color: var(--color-accent-hover) !important;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+ background-color: var(--color-accent-hover) !important;
+ border-color: var(--color-accent-hover) !important;
+ transform: translateY(-2px);
+ box-shadow: var(--shadow-md);
 }
 
-/* Botão Primário (Azul Oceano) */
 .btn-primary {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff !important;
+ background-color: var(--color-primary);
+ border-color: var(--color-primary);
+ color: #fff !important;
 }
 .btn-primary:hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
-  transform: translateY(-2px);
+ background-color: var(--color-primary-dark);
+ border-color: var(--color-primary-dark);
+ transform: translateY(-2px);
 }
 
-/* Botão Outline (Bordas) */
 .btn-outline-primary {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-  background-color: transparent;
+ color: var(--color-primary);
+ border-color: var(--color-primary);
+ background-color: transparent;
 }
 .btn-outline-primary:hover {
-  background-color: var(--color-primary);
-  color: #fff !important;
+ background-color: var(--color-primary);
+ color: #fff !important;
 }
 
-/* Botão Link Maps (Vermelho/Danger) */
 .btn-outline-danger {
-  color: var(--color-danger);
-  border-color: var(--color-danger);
+ color: var(--color-danger);
+ border-color: var(--color-danger);
 }
 .btn-outline-danger:hover {
-  background-color: var(--color-danger);
-  color: #fff !important;
+ background-color: var(--color-danger);
+ color: #fff !important;
 }
 
 /* =========================================
-   CARDS (CARTÕES)
-   ========================================= */
+ CARDS (Mantidos)
+ ========================================= */
 .card {
-  border: none;
-  border-radius: var(--radius-lg);
-  background-color: var(--color-bg-white);
-  box-shadow: var(--shadow-md);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  overflow: hidden;
+ border: none;
+ border-radius: var(--radius-lg);
+ background-color: var(--color-bg-white);
+ box-shadow: var(--shadow-md);
+ transition: transform 0.3s ease, box-shadow 0.3s ease;
+ overflow: hidden;
 }
+/* ... Restante dos estilos de Cards ... */
 
 .card:hover {
-  /* Efeito de flutuar levemente */
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+ transform: translateY(-3px);
+ box-shadow: var(--shadow-lg);
 }
 
 .card-header {
-  background-color: var(--color-bg-white);
-  border-bottom: 1px solid #edf2f7;
-  padding: 1.5rem;
-  font-weight: 700;
-  color: var(--color-primary-dark);
+ background-color: var(--color-bg-white);
+ border-bottom: 1px solid #edf2f7;
+ padding: 1.5rem;
+ font-weight: 700;
+ color: var(--color-primary-dark);
 }
 
 .card-body {
-  padding: 1.5rem;
+ padding: 1.5rem;
 }
 
 /* =========================================
-   TABELAS
-   ========================================= */
+ TABELAS (Mantidas)
+ ========================================= */
 .table-responsive {
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-white);
+ border-radius: var(--radius-lg);
+ background: var(--color-bg-white);
 }
 
 .table {
-  margin-bottom: 0;
-  border-collapse: separate;
-  border-spacing: 0;
+ margin-bottom: 0;
+ border-collapse: separate;
+ border-spacing: 0;
 }
+/* ... Restante dos estilos de Tabelas ... */
 
-/* Cabeçalho */
 .table thead th {
-  background-color: var(--color-primary-dark);
-  color: #ffffff;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-  padding: 1rem;
-  border: none;
+ background-color: var(--color-primary-dark);
+ color: #ffffff;
+ font-weight: 600;
+ text-transform: uppercase;
+ font-size: 0.8rem;
+ letter-spacing: 0.5px;
+ padding: 1rem;
+ border: none;
 }
 
-/* Linhas */
 .table tbody tr {
-  transition: background-color 0.2s;
+ transition: background-color 0.2s;
 }
 .table tbody tr:hover {
-  background-color: #f0f7ff !important; /* Azul bem clarinho no hover */
+ background-color: #f0f7ff !important;
 }
 
-/* Células */
 .table td {
-  vertical-align: middle;
-  padding: 1rem;
-  border-top: 1px solid #edf2f7;
-  color: var(--color-text-main);
+ vertical-align: middle;
+ padding: 1rem;
+ border-top: 1px solid #edf2f7;
+ color: var(--color-text-main);
 }
 
-/* Coluna de Identificação (Admin) */
 .table td.bg-light {
-  background-color: #f8fafc !important;
-  border-right: 3px solid var(--color-accent); /* Detalhe Ciano */
+ background-color: #f8fafc !important;
+ border-right: 3px solid var(--color-accent); 
 }
 
 /* =========================================
-   FORMULÁRIOS
-   ========================================= */
+ FORMULÁRIOS (Mantidos)
+ ========================================= */
 .form-control,
 .form-select {
-  border-radius: var(--radius-md);
-  border: 1px solid #e2e8f0;
-  padding: 0.6rem 1rem;
-  color: var(--color-text-main);
+ border-radius: var(--radius-md);
+ border: 1px solid #e2e8f0;
+ padding: 0.6rem 1rem;
+ color: var(--color-text-main);
 }
+/* ... Restante dos estilos de Formulários ... */
 
 .form-control:focus,
 .form-select:focus {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(0, 163, 196, 0.15); /* Brilho Ciano */
-  outline: none;
+ border-color: var(--color-accent);
+ box-shadow: 0 0 0 3px rgba(0, 163, 196, 0.15); 
+ outline: none;
 }
 
 .form-label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.5rem;
+ font-weight: 600;
+ font-size: 0.9rem;
+ color: var(--color-text-muted);
+ margin-bottom: 0.5rem;
 }
 
-/* Input readonly (Campos travados de endereço) */
 .form-control[readonly] {
-  background-color: #edf2f7;
-  color: var(--color-text-muted);
+ background-color: #edf2f7;
+ color: var(--color-text-muted);
 }
 
 /* =========================================
-   BADGES (ETIQUETAS)
-   ========================================= */
+ BADGES (ETIQUETAS) (Mantidas)
+ ========================================= */
 .badge {
-  padding: 0.5em 0.9em;
-  border-radius: var(--radius-pill);
-  font-weight: 600;
-  letter-spacing: 0.3px;
+ padding: 0.5em 0.9em;
+ border-radius: var(--radius-pill);
+ font-weight: 600;
+ letter-spacing: 0.3px;
 }
+/* ... Restante dos estilos de Badges e Utilitários de Texto ... */
 
-/* Reestilizando cores padrão para a paleta */
 .bg-secondary {
-  background-color: var(--color-text-muted) !important;
+ background-color: var(--color-text-muted) !important;
 }
 .bg-success {
-  background-color: var(--color-success) !important;
+ background-color: var(--color-success) !important;
 }
 .bg-warning {
-  background-color: #d69e2e !important;
-  color: #fff !important;
+ background-color: #d69e2e !important;
+ color: #fff !important;
 }
 .bg-danger {
-  background-color: var(--color-danger) !important;
+ background-color: var(--color-danger) !important;
 }
 .bg-light {
-  background-color: #edf2f7 !important;
-  color: var(--color-text-main) !important;
+ background-color: #edf2f7 !important;
+ color: var(--color-text-main) !important;
 }
 
-/* Utilitários de Texto */
 .text-primary {
-  color: var(--color-primary) !important;
+ color: var(--color-primary) !important;
 }
 .text-dark {
-  color: var(--color-primary-dark) !important;
+ color: var(--color-primary-dark) !important;
 }
 .text-muted {
-  color: var(--color-text-muted) !important;
+ color: var(--color-text-muted) !important;
 }
 
 /* =========================================
-   MODO ESCURO (NÃO ALTERA O QUE EXISTE)
-   ========================================= */
+ MODO ESCURO (ATUALIZADO PARA SIDEBAR)
+ ========================================= */
 
 body.dark-mode {
-  --color-bg-body: #0f161e;
-  --color-bg-white: #1a2433;
+ --color-bg-body: #0f161e;
+ --color-bg-white: #1a2433;
 
-  --color-text-main: #e2e8f0;
-  --color-text-muted: #94a3b8;
+ --color-text-main: #e2e8f0;
+ --color-text-muted: #94a3b8;
 
-  --color-primary-dark: #4ca3ff;
-  --color-primary: #60afff;
+ --color-primary-dark: #4ca3ff;
+ --color-primary: #60afff;
 
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+ --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+ --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
+ --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
 }
 
 /* Corrige tabelas em modo escuro */
 body.dark-mode .table thead th {
-  background-color: var(--color-primary-dark) !important;
-  color: #ffffff !important;
+ background-color: var(--color-primary-dark) !important;
+ color: #ffffff !important;
 }
 
 body.dark-mode .table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.05) !important;
+ background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 body.dark-mode .table td.bg-light {
-  background-color: #1f2937 !important;
+ background-color: #1f2937 !important;
 }
 
 /* Navbar escura */
 body.dark-mode .navbar {
-  background-color: #1a2433 !important;
-  border-bottom: 1px solid #2d3748 !important;
+ background-color: #1a2433 !important;
+ border-bottom: 1px solid #2d3748 !important;
 }
 
 body.dark-mode .navbar .nav-link {
-  color: var(--color-text-muted) !important;
+ color: var(--color-text-muted) !important;
 }
 
 body.dark-mode .navbar .nav-link:hover {
-  color: var(--color-accent) !important;
+ color: var(--color-accent) !important;
 }
 
 /* Cards */
 body.dark-mode .card {
-  background-color: #1a2433 !important;
+ background-color: #1a2433 !important;
 }
 
 body.dark-mode .card-header {
-  background-color: #1e2a3a !important;
-  color: var(--color-primary);
+ background-color: #1e2a3a !important;
+ color: var(--color-primary);
 }
 
 /* Forms */
 body.dark-mode .form-control,
 body.dark-mode .form-select {
-  background-color: #1e2a3a;
-  border: 1px solid #334155;
-  color: var(--color-text-main);
+ background-color: #1e2a3a;
+ border: 1px solid #334155;
+ color: var(--color-text-main);
 }
 
 body.dark-mode .form-control::placeholder {
-  color: #64748b;
+ color: #64748b;
 }
 
 body.dark-mode .form-control:focus {
-  background-color: #283548;
+ background-color: #283548;
 }
 
 /* Badges */
 body.dark-mode .bg-light {
-  background-color: #1f2937 !important;
+ background-color: #1f2937 !important;
 }
 
 /* Alertas */
 body.dark-mode .alert {
-  background-color: #1e293b;
-  color: var(--color-text-main);
-  border: 1px solid #334155;
+ background-color: #1e293b;
+ color: var(--color-text-main);
+ border: 1px solid #334155;
+}
+
+/* DARK MODE - SIDEBAR */
+body.dark-mode .app-sidebar {
+ background: #1a2433;
+ border-right: 1px solid #2d3748;
+}
+
+body.dark-mode .app-sidebar .nav-link {
+ color: var(--color-text-main);
+}
+
+body.dark-mode .app-sidebar .nav-link:hover {
+ background: rgba(255,255,255,0.06);
+ color: var(--color-primary);
+}
+
+body.dark-mode .app-sidebar .nav-link.active {
+ background: rgba(255,255,255,0.10);
+ color: var(--color-primary) !important;
+ border-left: 4px solid var(--color-primary);
+}
+/* =========================================
+ MODO ESCURO
+ ========================================= */
+/* ... (Seus estilos de modo escuro existentes) ... */
+
+
+/* 💡 CORREÇÃO: Campo de Observação */
+/* Garante que o fundo e o texto fiquem com um contraste ideal no modo escuro. */
+body.dark-mode .campo-observacao {
+    /* Usar um fundo ligeiramente mais claro que o bg-light padrão do dark mode (para destaque) */
+    background-color: #283548 !important; 
+    /* Garante que o texto seja a cor de texto principal (claro) e não o muted */
+    color: var(--color-text-main) !important; 
+    /* Ajusta a cor do ícone */
+    border-color: #334155 !important;
+}
+
+/* Garante que o ícone dentro do campo fique com a cor do texto principal */
+body.dark-mode .campo-observacao .bi {
+    color: var(--color-text-main) !important;
+}
+
+/* ⚠️ Se você NÃO quiser alterar o HTML, use o seletor abaixo. 
+   Ele é menos específico e pode afetar outros elementos: */
+body.dark-mode .p-2.bg-light.text-muted {
+     background-color: #283548 !important; 
+     color: var(--color-text-main) !important; 
+}
+/* =========================================
+ MODO ESCURO (Ajuste nos Elementos de Texto)
+ ========================================= */
+
+/* ... (Seus estilos existentes) ... */
+
+/* 💡 NOVO: Garante que o texto em negrito se destaque */
+body.dark-mode strong, 
+body.dark-mode b {
+    /* Usa o azul primário para dar destaque (melhora muito o contraste) */
+    color: var(--color-primary) !important; 
+}
+
+/* 💡 NOVO: Ajusta o texto da observação para usar a cor principal (mais fácil de ler) */
+body.dark-mode .campo-observacao {
+    background-color: #283548 !important; 
+    color: var(--color-text-main) !important; 
+    border-color: #334155 !important;
+}
+
+body.dark-mode .campo-observacao .bi {
+    color: var(--color-text-main) !important;
+}
+body.dark-mode .table tbody tr {
+    background-color: #1e2a3a !important; /* Cor de fundo da linha */
+    border-bottom: 1px solid #2d3748 !important; /* Separador sutil */
+}
+
+/* 💡 NOVO: Garante que o texto da célula não se perca no fundo */
+body.dark-mode .table td {
+    color: var(--color-text-main) !important; /* O texto da célula deve ser claro */
+    border-top: 1px solid #2d3748 !important; /* Borda entre linhas */
+}
+
+/* 💡 NOVO: Ajuste o hover para ser claramente visível */
+body.dark-mode .table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important; /* Cinza claro e transparente */
+}
+
+/* Corrige o caso de NENHUMA solicitação */
+body.dark-mode .table .text-muted {
+    color: var(--color-text-muted) !important;
 }

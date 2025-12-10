@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% set meses = {
+    1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 
+    5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto", 
+    9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
+} %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-dark">
+        <i class="bi bi-bar-chart-fill me-2"></i> Relatórios
+    </h2>
+    <div class="filter-controls">
+        <form method="GET" class="d-flex align-items-center gap-3">
+            <h5 class="mb-0 text-muted">Filtrar por Período:</h5>
+            
+            <select name="mes" class="form-select" style="width: 150px;">
+                {% for num, nome in meses.items() %}
+                    <option value="{{ num }}" {% if num == mes_selecionado|int %}selected{% endif %}>
+                        {{ nome }}
+                    </option>
+                {% endfor %}
+            </select>
+            
+            <select name="ano" class="form-select" style="width: 120px;">
+                {% for ano in anos_disponiveis %}
+                    <option value="{{ ano }}" {% if ano|int == ano_selecionado|int %}selected{% endif %}>
+                        {{ ano }}
+                    </option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel-fill"></i> Filtrar
+            </button>
+        </form>
+    </div>
+</div>
+
+<h4 class="mb-4 text-primary">
+    Dados de {{ meses[mes_selecionado|int] }} / {{ ano_selecionado }}
+</h4>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm rounded-4 p-3 text-center bg-primary text-white">
+            <h4 class="fw-bold">Total</h4>
+            <p class="display-6 fw-bold">{{ total_solicitacoes }}</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card shadow-sm rounded-4 p-3 text-center bg-success text-white">
+            <h4 class="fw-bold">Aprovadas</h4>
+            <p class="display-6 fw-bold">{{ total_aprovadas }}</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card shadow-sm rounded-4 p-3 text-center bg-danger text-white">
+            <h4 class="fw-bold">Recusadas</h4>
+            <p class="display-6 fw-bold">{{ total_recusadas }}</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card shadow-sm rounded-4 p-3 text-center bg-warning text-dark">
+            <h4 class="fw-bold">Em Análise</h4>
+            <p class="display-6 fw-bold">{{ total_analise }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm rounded-4 p-4 mb-4">
+    <h4 class="mb-3 text-dark"><i class="bi bi-geo-alt-fill me-2"></i>Solicitações por Região</h4>
+    
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Região</th>
+                    <th scope="col" class="text-center">Total de Solicitações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for regiao, count in dados_regiao %}
+                <tr>
+                    <td>{{ regiao }}</td>
+                    <td class="text-center">{{ count }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" class="text-center text-muted">Nenhuma solicitação encontrada para este período.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card shadow-sm rounded-4 p-4 mb-4">
+    <h4 class="mb-3 text-dark"><i class="bi bi-graph-up me-2"></i>Solicitações por Mês (Histórico)</h4>
+    <p class="text-muted">Visão geral da evolução ao longo do tempo, independente do filtro de período.</p>
+    
+    <canvas id="chartMensal" height="100"></canvas>
+</div>
+
+<script id="dados-mensais-json" type="application/json">
+    {{ dados_mensais | tojson }}
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+    // Lê o JSON da tag script temporária (solução para o erro de sintaxe do VS Code)
+    const dadosMensaisRaw = document.getElementById('dados-mensais-json').textContent;
+    const dadosMensais = JSON.parse(dadosMensaisRaw);
+    
+    const labels = dadosMensais.map(item => item[0]);
+    const counts = dadosMensais.map(item => item[1]);
+
+    // Função para formatar o mês (ex: '2023-12' -> 'Dez/23')
+    function formatarMes(label) {
+        const [ano, mes] = label.split('-');
+        // Mês - 1, pois JavaScript usa índice 0-11
+        const data = new Date(ano, mes - 1); 
+        const formatador = new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit' });
+        // Retorna o formato Ex: Dez/23
+        return formatador.format(data).replace('.', '/').replace(' ', ''); 
+    }
+    
+    const labelsFormatados = labels.map(formatarMes);
+
+    const ctx = document.getElementById('chartMensal').getContext('2d');
+    
+    const chartMensal = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labelsFormatados,
+            datasets: [{
+                label: 'Total de Solicitações',
+                data: counts,
+                backgroundColor: 'rgba(0, 163, 196, 0.2)', // Cor Ciano (Accent)
+                borderColor: '#00a3c4',
+                borderWidth: 3,
+                tension: 0.3, // Curva suave
+                fill: true,
+                pointBackgroundColor: '#00a3c4',
+                pointBorderColor: '#fff',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantidade de Solicitações'
+                    },
+                    ticks: {
+                        precision: 0 // Garante números inteiros no eixo Y
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            return `Mês: ${labelsFormatados[context[0].dataIndex]}`;
+                        },
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += context.parsed.y.toFixed(0);
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock content %}

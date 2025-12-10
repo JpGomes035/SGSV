@@ -82,7 +82,7 @@ graph TD
 ```
 ## 🚀 Tecnologias Utilizadas
 
-- **Linguagem:** Python 3.12+
+- **Linguagem:** Python 3.14+
 - **Framework Web:** Flask (Microframework ágil)
 - **Banco de Dados:** SQL (SQLite para Dev / PostgreSQL para Produção)
 - **ORM:** SQLAlchemy
@@ -100,7 +100,7 @@ graph TD
 
 1. **Clonar o repositório**
     ```bash
-    git clone https://github.com/seu-usuario/sgsv-sistema.git
+    git clone https://github.com/JpGomes035/sgsv-sistema.git
     cd sgsv-sistema
     ```
 

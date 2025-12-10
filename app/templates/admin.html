@@ -5,171 +5,185 @@
     <h2 class="text-dark"><i class="bi bi-shield-lock-fill"></i> Painel de Gestão</h2>
 
     <a class="btn btn-success btn-sm" href="{{ url_for('main.exportar_excel',
-       status=request.args.get('status') or '',
-       unidade=request.args.get('unidade') or '',
-       regiao=request.args.get('regiao') or ''
-    ) }}">
+       status=request.args.get('status'),
+       unidade=request.args.get('unidade'),
+       regiao=request.args.get('regiao')
+   ) }}">
         <i class="bi bi-file-earmark-excel"></i> Exportar Excel
     </a>
 </div>
 
-<form method="GET" class="row g-2 mb-3">
-    <div class="col-md-3">
-        <label class="small text-muted">Filtrar por Status</label>
-        <select name="status" class="form-select form-select-sm">
-            <option value="">Todos</option>
-            <option value="EM ANÁLISE" {{ 'selected' if request.args.get('status')=='EM ANÁLISE' else '' }}>🟡 Em Análise</option>
-            <option value="APROVADO" {{ 'selected' if request.args.get('status')=='APROVADO' else '' }}>🟢 Aprovado</option>
-            <option value="NEGADO" {{ 'selected' if request.args.get('status')=='NEGADO' else '' }}>🔴 Negado</option>
-        </select>
-    </div>
-
-    <div class="col-md-3">
-        <label class="small text-muted">Pesquisar por Unidade</label>
-        <input type="text" name="unidade" class="form-control form-control-sm"
-            placeholder="Nome da UVIS..."
-            value="{{ request.args.get('unidade', '') }}">
-    </div>
-
-    <div class="col-md-3">
-        <label class="small text-muted">Região</label>
-        <input type="text" name="regiao" class="form-control form-control-sm"
-            placeholder="Leste, Oeste..."
-            value="{{ request.args.get('regiao', '') }}">
-    </div>
-
-    <div class="col-md-3 d-flex align-items-end">
-        <button class="btn btn-dark btn-sm w-100">
-            <i class="bi bi-funnel"></i> Filtrar
-        </button>
+<form method="GET" class="card p-3 mb-4 shadow-sm">
+    <div class="row g-2">
+        <div class="col-md-3">
+            <label class="small text-muted">Filtrar por Status</label>
+            <select name="status" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                <option value="PENDENTE" {{ 'selected' if request.args.get('status')=='PENDENTE' else '' }}>⚪️ Pendente</option>
+                <option value="EM ANÁLISE" {{ 'selected' if request.args.get('status')=='EM ANÁLISE' else '' }}>🟡 Em Análise</option>
+                <option value="APROVADO" {{ 'selected' if request.args.get('status')=='APROVADO' else '' }}>🟢 Aprovado</option>
+                <option value="NEGADO" {{ 'selected' if request.args.get('status')=='NEGADO' else '' }}>🔴 Negado</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="small text-muted">Pesquisar por Unidade</label>
+            <input type="text" name="unidade" class="form-control form-control-sm" placeholder="Nome da UVIS..." value="{{ request.args.get('unidade', '') }}">
+        </div>
+        <div class="col-md-3">
+            <label class="small text-muted">Região</label>
+            <input type="text" name="regiao" class="form-control form-control-sm" placeholder="Leste, Oeste..." value="{{ request.args.get('regiao', '') }}">
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-dark btn-sm w-100"><i class="bi bi-funnel"></i> Filtrar</button>
+        </div>
     </div>
 </form>
 
-<div class="card shadow-sm">
+<div class="card shadow-sm border-0">
     <div class="table-responsive">
-        <table class="table table-bordered align-middle mb-0">
-            <thead class="table-light">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
                 <tr>
                     <th style="width: 25%">Unidade</th>
-                    <th style="width: 35%">Dados Técnicos</th>
-                    <th style="width: 40%">Decisão</th>
+                    <th style="width: 40%">Dados da Operação</th>
+                    <th style="width: 35%">Decisão & Ajustes</th>
                 </tr>
             </thead>
             <tbody>
-
-             {% for p in pedidos %}
-
+                {% for p in pedidos %}
                 <tr>
-
-                    <td class="bg-light">
-                        <strong class="text-primary">{{ p.autor.nome_uvis }}</strong>
+                    <td class="bg-light align-top pt-3">
+                        <strong class="text-primary fs-6">{{ p.autor.nome_uvis }}</strong>
                         <br>
-                        <span class="badge bg-secondary mb-2">{{ p.autor.regiao }}</span>
+                        <span class="badge bg-secondary mb-2 mt-1">{{ p.autor.regiao }}</span>
 
-                        <div class="small text-muted border-top pt-2">
-                            <i class="bi bi-calendar"></i>
-                            {{ p.data_agendamento | datetimeformat }} às {{ p.hora_agendamento }}<br>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            <i class="bi bi-calendar"></i> 
+                            {{ p.data_agendamento.strftime('%d/%m/%Y') }} às {{ p.hora_agendamento.strftime('%H:%M') }} 
+                            <br><br>
 
                             <i class="bi bi-geo-alt"></i>
-                            <span>{{ p.logradouro }}</span>,
-                            <span>{{ p.numero or 'S/N' }}</span> -
-                            <span>{{ p.bairro }}</span> <br>
-
-                            <span>{{ p.cidade }}</span> / <span>{{ p.uf }}</span> <br>
-                            CEP: <span>{{ p.cep }}</span>
+                            {{ p.logradouro }}, {{ p.numero or 'S/N' }}
+                            {% if p.complemento %} <br><span class="fst-italic">({{ p.complemento }})</span> {% endif %}
+                            <br>
+                            {{ p.bairro }} - {{ p.cidade }}/{{ p.uf }}
+                            <br>
+                            CEP: {{ p.cep }}
                         </div>
                     </td>
 
+                    <td class="align-top pt-3">
+                        {% if p.latitude and p.longitude %}
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mb-3 border">
+                            <div style="line-height: 1.2;">
+                                <small class="text-muted d-block">GPS:</small>
+                                <small class="fw-bold font-monospace">{{ p.latitude }}, {{ p.longitude }}</small>
+                            </div>
+                            <a href="https://www.google.com/maps?q={{ p.latitude }},{{ p.longitude }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-map-fill"></i> Mapa
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning py-1 px-2 small mb-3">
+                            <i class="bi bi-exclamation-triangle"></i> Sem coordenadas
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-2 small mb-2">
+                            <div class="col-6">
+                                <span class="text-muted d-block">Tipo de Visita:</span>
+                                <strong class="text-capitalize">{{ p.tipo_visita or '--' }}</strong>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted d-block">Altura Voo:</span>
+                                <strong>{{ p.altura_voo or '--' }}</strong>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted d-block">Foco:</span>
+                                <strong>{{ p.foco }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {% if p.criadouro %}
+                                <span class="badge bg-danger">Criadouro: SIM</span>
+                            {% else %}
+                                <span class="badge bg-light text-secondary border">Criadouro: NÃO</span>
+                            {% endif %}
+
+                            {% if p.apoio_cet %}
+                                <span class="badge bg-warning text-dark">Apoio CET: SIM</span>
+                            {% else %}
+                                <span class="badge bg-light text-secondary border">Apoio CET: NÃO</span>
+                            {% endif %}
+                        </div>
+
+                        {% if p.observacao %}
+    <div class="p-2 bg-light border rounded small fst-italic text-muted campo-observacao"> 
+        <i class="bi bi-chat-quote me-1"></i> "{{ p.observacao }}"
+    </div>
+{% endif %}
+                    </td>
+
                     <form action="{{ url_for('main.atualizar', id=p.id) }}" method="POST">
-                        <td>                
-                            <label class="small fw-bold text-muted">Coordenadas</label>
-                            <input name="coords" class="form-control form-control-sm mb-2"
-                                placeholder="Lat, Long" value="{{ p.coords or '' }}">
+                        <td class="align-top pt-3 bg-light bg-opacity-50">
+                            
+                            <div class="row g-1 mb-2">
+                                <div class="col-12"><label class="small fw-bold text-muted">Ajuste GPS (Lat / Long)</label></div>
+                                <div class="col-6">
+                                    <input name="latitude" class="form-control form-control-sm font-monospace" placeholder="Lat" value="{{ p.latitude or '' }}">
+                                </div>
+                                <div class="col-6">
+                                    <input name="longitude" class="form-control form-control-sm font-monospace" placeholder="Long" value="{{ p.longitude or '' }}">
+                                </div>
+                            </div>
 
                             <label class="small fw-bold text-muted">Protocolo DECEA</label>
-                            <input name="protocolo" class="form-control form-control-sm font-monospace"
-                                placeholder="BR-2025-XXXX" value="{{ p.protocolo or '' }}">
-                        </td>
+                            <input name="protocolo" class="form-control form-control-sm font-monospace mb-2" placeholder="BR-2025-XXXX" value="{{ p.protocolo or '' }}">
 
-                        <td>
-                            <div class="row g-2">
-                                <div class="col-12">
-                                    <label class="small fw-bold text-muted">Status</label>
-                                    <select name="status" class="form-select form-select-sm">
-                                        <option value="EM ANÁLISE" {% if p.status=='EM ANÁLISE' %}selected{% endif %}>🟡 Analisar</option>
-                                        <option value="APROVADO" {% if p.status=='APROVADO' %}selected{% endif %}>🟢 Aprovar</option>
-                                        <option value="NEGADO" {% if p.status=='NEGADO' %}selected{% endif %}>🔴 Negar</option>
-                                    </select>
-                                </div>
+                            <div class="p-2 border rounded bg-white">
+                                <label class="small fw-bold text-muted">Status</label>
+                                <select name="status" class="form-select form-select-sm mb-2">
+                                    <option value="PENDENTE" {% if p.status=='PENDENTE' %}selected{% endif %}>⚪️ Pendente</option>
+                                    <option value="EM ANÁLISE" {% if p.status=='EM ANÁLISE' %}selected{% endif %}>🟡 Em Análise</option>
+                                    <option value="APROVADO" {% if p.status=='APROVADO' %}selected{% endif %}>🟢 APROVAR</option>
+                                    <option value="NEGADO" {% if p.status=='NEGADO' %}selected{% endif %}>🔴 NEGAR</option>
+                                </select>
 
-                                <div class="col-12">
-                                    <label class="small fw-bold text-muted">Justificativa (Se Negado)</label>
-                                    <input name="justificativa" class="form-control form-control-sm"
-                                        placeholder="Motivo da recusa..." value="{{ p.justificativa or '' }}">
-                                </div>
+                                <label class="small fw-bold text-muted">Justificativa (se negar)</label>
+                                <input name="justificativa" class="form-control form-control-sm mb-2" value="{{ p.justificativa or '' }}">
 
-                                <div class="col-12 mt-3">
-                                    <button class="btn btn-primary btn-sm w-100 fw-bold">
-                                        <i class="bi bi-check-lg"></i> Salvar Alterações
-                                    </button>
-                                </div>
+                                <button class="btn btn-primary btn-sm w-100 fw-bold">
+                                    <i class="bi bi-check-lg"></i> Salvar
+                                </button>
                             </div>
                         </td>
                     </form>
-
                 </tr>
-
                 {% else %}
                 <tr>
-                    <td colspan="3" class="text-center py-4">Nenhum pedido encontrado.</td>
+                    <td colspan="3" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        Nenhum pedido encontrado.
+                    </td>
                 </tr>
                 {% endfor %}
-
             </tbody>
         </table>
-
-{% if paginacao.pages > 1 %}
-<nav aria-label="Navegação de páginas" class="mt-3">
-  <ul class="pagination justify-content-center">
-
-    <!-- Botão Anterior -->
-    <li class="page-item {% if not paginacao.has_prev %}disabled{% endif %}">
-      <a class="page-link"
-         href="?page={{ paginacao.prev_num }}">
-        Anterior
-      </a>
-    </li>
-
-    <!-- Números -->
-    {% for pagina in paginacao.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
-      {% if pagina %}
-        <li class="page-item {% if pagina == paginacao.page %}active{% endif %}">
-          <a class="page-link"
-             href="?page={{ pagina }}">
-            {{ pagina }}
-          </a>
-        </li>
-      {% else %}
-        <li class="page-item disabled"><span class="page-link">…</span></li>
-      {% endif %}
-    {% endfor %}
-
-    <!-- Botão Próxima -->
-    <li class="page-item {% if not paginacao.has_next %}disabled{% endif %}">
-      <a class="page-link"
-         href="?page={{ paginacao.next_num }}">
-        Próxima
-      </a>
-    </li>
-
-  </ul>
-</nav>
-{% endif %}
-
-
-
-
+        
+        {% if paginacao.pages > 1 %}
+        <nav aria-label="Navegação" class="mt-4 pb-3">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not paginacao.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.admin_dashboard', page=paginacao.prev_num, status=request.args.get('status'), unidade=request.args.get('unidade'), regiao=request.args.get('regiao')) }}">Anterior</a>
+                </li>
+                <li class="page-item disabled"><a class="page-link">Página {{ paginacao.page }} de {{ paginacao.pages }}</a></li>
+                <li class="page-item {% if not paginacao.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.admin_dashboard', page=paginacao.next_num, status=request.args.get('status'), unidade=request.args.get('unidade'), regiao=request.args.get('regiao')) }}">Próxima</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 </div>
-
 {% endblock %}

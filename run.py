@@ -13,12 +13,12 @@ def verificar_banco():
         with app.app_context():
             db.create_all()
             
-            # --- 1. GARANTE ADMIN ---
+            # --- 1. GARANTE ADMIN ORIGINAL ---
             admin = Usuario.query.filter_by(login='admin').first()
             if not admin:
-                print("--- Criando usuário Admin... ---")
+                print("--- Criando usuário Admin (original)... ---")
                 admin = Usuario(
-                    nome_uvis="Administrador", 
+                    nome_uvis="Administrador Original", 
                     regiao="CENTRAL", 
                     codigo_setor="00",
                     login="admin",
@@ -29,7 +29,28 @@ def verificar_banco():
             else:
                 if admin.tipo_usuario != 'admin':
                     admin.tipo_usuario = 'admin'
-                print(f"--- Usuário Admin encontrado (ID: {admin.id}) ---")
+                print(f"--- Usuário Admin (original) encontrado (ID: {admin.id}) ---")
+
+
+            # --- 1.5. GARANTE OPERARIO (NOVO) ---
+            # Este usuário terá o tipo 'admin' para ter as mesmas permissões que o admin.
+            operario = Usuario.query.filter_by(login='operario').first()
+            if not operario:
+                print("--- Criando novo usuário Operario... ---")
+                operario = Usuario(
+                    nome_uvis="Usuário Operário", 
+                    regiao="OPERACIONAL", 
+                    codigo_setor="98",
+                    login="operario",
+                    tipo_usuario="operario" # IMPORTANTE: Tipo 'admin' para ter as mesmas permissões que o 'admin' original
+                )
+                operario.set_senha("operario123") # Defina uma senha inicial
+                db.session.add(operario)
+            else:
+                if operario.tipo_usuario != 'operario':
+                    # Garante que, se o usuário existir, ele tenha o tipo 'operario' para ter acesso total.
+                    operario.tipo_usuario = 'operario' 
+                print(f"--- Usuário Operario encontrado (ID: {operario.id}) ---")
 
 
             # --- 2. GARANTE LAPA ---
@@ -88,8 +109,6 @@ def verificar_banco():
 
     except Exception as e:
         print(f"!!! ERRO FATAL NA VERIFICAÇÃO DO BANCO: {e}")
-        # AQUI VAI DAR ERRO se você ainda tem um pedido de teste ligado ao Lapa
-        # Mas não tem problema, o servidor vai tentar iniciar.
 
 if __name__ == "__main__":
     verificar_banco()

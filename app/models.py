@@ -2,7 +2,6 @@ from app import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 # -------------------------------------------------------------
 # USUÁRIO
 # -------------------------------------------------------------
@@ -19,14 +18,12 @@ class Usuario(db.Model):
 
     tipo_usuario = db.Column(db.String(20), default='uvis')
 
-    # Relacionamento (1 usuário → várias solicitações)
     solicitacoes = db.relationship(
         "Solicitacao",
         backref="autor",
         lazy="select"
     )
 
-    # Métodos utilitários
     def set_senha(self, senha):
         self.senha_hash = generate_password_hash(senha)
 
@@ -43,34 +40,47 @@ class Solicitacao(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # ----------------------
-    # Dados da Solicitação
+    # Dados Básicos e Data
     # ----------------------
-    data_agendamento = db.Column(db.String(10), nullable=False)
-    hora_agendamento = db.Column(db.String(5), nullable=False)
+    data_agendamento = db.Column(db.Date, nullable=False)
+    hora_agendamento = db.Column(db.Time, nullable=False)
+    foco = db.Column(db.String(50), nullable=False)
 
-    # Endereço (ViaCEP + preenchimento manual)
+    # ----------------------
+    # Detalhes Operacionais (NOVOS)
+    # ----------------------
+    tipo_visita = db.Column(db.String(50))  # Monitoramento, Aedes, Culex
+    altura_voo = db.Column(db.String(20))   # 10m, 20m, 30m, 40m
+    
+    # Perguntas Sim/Não (Salvo como True/False no banco)
+    criadouro = db.Column(db.Boolean, default=False) 
+    apoio_cet = db.Column(db.Boolean, default=False)
+    
+    observacao = db.Column(db.Text)         # Texto livre maior
+
+    # ----------------------
+    # Endereço
+    # ----------------------
     cep = db.Column(db.String(9), nullable=False)
     logradouro = db.Column(db.String(150), nullable=False)
     bairro = db.Column(db.String(100), nullable=False)
     cidade = db.Column(db.String(100), nullable=False)
     uf = db.Column(db.String(2), nullable=False)
-
     numero = db.Column(db.String(20))
     complemento = db.Column(db.String(100))
 
-    foco = db.Column(db.String(50), nullable=False)
+    # Gealocalização
+    latitude = db.Column(db.String(50))
+    longitude = db.Column(db.String(50))
 
     # ----------------------
-    # Dados preenchidos pelo Admin
+    # Controle Admin
     # ----------------------
-    coords = db.Column(db.String(100))
     protocolo = db.Column(db.String(50))
     justificativa = db.Column(db.String(255))
-
     data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default="EM ANÁLISE")
 
-    # Relacionamento com o usuário
     usuario_id = db.Column(
         db.Integer,
         db.ForeignKey("usuarios.id"),

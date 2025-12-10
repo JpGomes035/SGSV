@@ -54,11 +54,19 @@ erDiagram
         string numero
         string complemento
         string cep
+        string latitude
+        string longitude
+        string tipo_visita
+        string altura_voo
+        boolean criadouro
+        boolean apoio_cet
+        string observacao
         string foco_acao
         string status_voo
         string protocolo_decea
         string motivo_recusa
     }
+
 ```
 
 ## ⚙️ Fluxo de Uso
@@ -82,7 +90,7 @@ graph TD
 ```
 ## 🚀 Tecnologias Utilizadas
 
-- **Linguagem:** Python 3.14+
+- **Linguagem:** Python 3.12+
 - **Framework Web:** Flask (Microframework ágil)
 - **Banco de Dados:** SQL (SQLite para Dev / PostgreSQL para Produção)
 - **ORM:** SQLAlchemy
@@ -100,7 +108,7 @@ graph TD
 
 1. **Clonar o repositório**
     ```bash
-    git clone https://github.com/JpGomes035/sgsv-sistema.git
+    git clone https://github.com/seu-usuario/sgsv-sistema.git
     cd sgsv-sistema
     ```
 
@@ -168,7 +176,5 @@ sgsv-sistema/
 
 ## 📄 Licença
 
-Este projeto está sob a licença [© 2025 Oceano Azul | LJA drones. Todos os direitos reservados.].
+Este projeto está sob a licença [© 2025 Oceano Azul | IJA drones. Todos os direitos reservados.].
 **Desenvolvido para otimização de processos das UVIS.**
-
-

@@ -34,7 +34,9 @@
     />
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm"
+    >
       <div class="container-fluid">
         {% if current_user.is_authenticated %}
         <button
@@ -88,12 +90,17 @@
                 ><i class="bi bi-graph-up me-2"></i>Relatórios (Admin)</a
               >
             </li>
+            
+
             {% endif %}
 
             <li class="nav-item">
               <span class="nav-link text-primary fw-bold">
                 <i class="bi bi-person-circle me-1"></i>
-                Olá, <strong>{{ current_user.nome_uvis or current_user.name }}</strong>
+                Olá,
+                <strong
+                  >{{ current_user.nome_uvis or current_user.name }}</strong
+                >
               </span>
             </li>
             <li class="nav-item">
@@ -122,34 +129,45 @@
 
     {% if current_user.is_authenticated %}
     <div class="app-wrapper">
-      <div class="app-sidebar" id="appSidebar">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a
-              class="nav-link {% if request.endpoint == 'main.dashboard' or request.endpoint == 'main.admin_dashboard' %}active{% endif %}"
-              href="{{ url_for('main.dashboard') }}"
-            >
-              <i class="bi bi-grid-fill me-2"></i><span>Dashboard</span>
-            </a>
-          </li>
-          {% if current_user.tipo_usuario == 'admin' %}
-          <li class="nav-item">
-            <a
-              class="nav-link {% if request.endpoint == 'main.relatorios' %}active{% endif %}"
-              href="{{ url_for('main.relatorios') }}"
-            >
-              <i class="bi bi-graph-up me-2"></i><span>Relatórios</span>
-            </a>
-          </li>
-          {% endif %}
-        </ul>
-      </div>
+    <div class="app-sidebar" id="appSidebar">
+  <ul class="nav flex-column">
+    <li class="nav-item">
+      <a
+        class="nav-link {% if request.endpoint == 'main.dashboard' or request.endpoint == 'main.admin_dashboard' %}active{% endif %}"
+        href="{{ url_for('main.dashboard') }}"
+      >
+        <i class="bi bi-grid-fill me-2"></i><span>Dashboard</span>
+      </a>
+    </li>
+
+    {% if current_user.tipo_usuario == 'admin' %}
+    <li class="nav-item">
+      <a
+        class="nav-link {% if request.endpoint == 'main.relatorios' %}active{% endif %}"
+        href="{{ url_for('main.relatorios') }}"
+      >
+        <i class="bi bi-graph-up me-2"></i><span>Relatórios</span>
+      </a>
+    </li>
+
+    <!-- NOVO ITEM: AGENDA -->
+    <li class="nav-item">
+      <a
+        class="nav-link {% if request.endpoint == 'main.agenda' %}active{% endif %}"
+        href="{{ url_for('main.agenda') }}"
+      >
+        <i class="bi bi-calendar-event me-2"></i><span>Agenda</span>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+
 
       <div class="app-content" id="appContent">
         <div class="container-fluid">
-          {% with messages = get_flashed_messages(with_categories=true) %} 
-          {% if messages %} 
-          {% for category, message in messages %}
+          {% with messages = get_flashed_messages(with_categories=true) %} {% if
+          messages %} {% for category, message in messages %}
           <div
             class="alert alert-{{ category }} alert-dismissible fade show shadow-sm rounded-4"
             role="alert"
@@ -162,11 +180,8 @@
               aria-label="Close"
             ></button>
           </div>
-          {% endfor %} 
-          {% endif %} 
-          {% endwith %}
-          
-          {% block content %}{% endblock %} 
+          {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock
+          %}
         </div>
       </div>
     </div>
@@ -176,51 +191,51 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script>
-    // ------------------------------------
-    // JAVASCRIPT: CONTROLE SIDEBAR E DARK MODE
-    // ------------------------------------
+    <script>
+      // ------------------------------------
+      // JAVASCRIPT: CONTROLE SIDEBAR E DARK MODE
+      // ------------------------------------
 
-    // Removido: const navbar = document.querySelector(".navbar");
-    const body = document.body;
-    const sidebarToggle = document.getElementById("sidebarToggle");
+      // Removido: const navbar = document.querySelector(".navbar");
+      const body = document.body;
+      const sidebarToggle = document.getElementById("sidebarToggle");
 
-    // --- 1. Toggle Sidebar (desktop) --- (Agora é o item 1)
-    if (sidebarToggle) {
+      // --- 1. Toggle Sidebar (desktop) --- (Agora é o item 1)
+      if (sidebarToggle) {
         sidebarToggle.addEventListener("click", () => {
-            body.classList.toggle("sidebar-collapsed");
+          body.classList.toggle("sidebar-collapsed");
         });
 
         // Estado inicial: Garante que a sidebar está aberta por padrão no desktop
         if (window.innerWidth >= 992) {
-            body.classList.remove("sidebar-collapsed");
+          body.classList.remove("sidebar-collapsed");
         }
-    }
+      }
 
-    // --- 2. Dark Mode (Seu JS original) --- (Agora é o item 2)
-    const toggle = document.getElementById("toggleDarkMode");
-    if (toggle) {
+      // --- 2. Dark Mode (Seu JS original) --- (Agora é o item 2)
+      const toggle = document.getElementById("toggleDarkMode");
+      if (toggle) {
         // Carregar preferência salva
         // Corrigido para verificar o ícone inicial correto
         if (localStorage.getItem("dark-mode") === "enabled") {
-            body.classList.add("dark-mode");
-            toggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
+          body.classList.add("dark-mode");
+          toggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
         } else {
-            toggle.innerHTML = '<i class="bi bi-moon-stars"></i>';
+          toggle.innerHTML = '<i class="bi bi-moon-stars"></i>';
         }
 
         toggle.addEventListener("click", () => {
-            body.classList.toggle("dark-mode");
+          body.classList.toggle("dark-mode");
 
-            if (body.classList.contains("dark-mode")) {
-                localStorage.setItem("dark-mode", "enabled");
-                toggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
-            } else {
-                localStorage.setItem("dark-mode", "disabled");
-                toggle.innerHTML = '<i class="bi bi-moon-stars"></i>';
-            }
+          if (body.classList.contains("dark-mode")) {
+            localStorage.setItem("dark-mode", "enabled");
+            toggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
+          } else {
+            localStorage.setItem("dark-mode", "disabled");
+            toggle.innerHTML = '<i class="bi bi-moon-stars"></i>';
+          }
         });
-    }
-</script>
+      }
+    </script>
   </body>
 </html>

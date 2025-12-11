@@ -1157,3 +1157,43 @@ def deletar(id):
 
     flash(f"Pedido #{pedido_id} da {autor_nome} deletado permanentemente.", "success")
     return redirect(url_for('main.admin_dashboard'))
+# ----------------------------------------------
+# ROTA DA AGENDA / CALENDÁRIO
+# ----------------------------------------------
+@bp.route("/agenda")
+def agenda():
+    if 'user_id' not in session:
+        return redirect(url_for('main.login'))
+
+    user_tipo = session.get("user_tipo")
+    user_id = session.get("user_id")
+
+    # Admin, Operário e Visualizar enxergam tudo
+    if user_tipo in ['admin', 'operario', 'visualizar']:
+        eventos = Solicitacao.query.options(joinedload(Solicitacao.autor)).all()
+    else:
+        # UVIS vê apenas seus próprios agendamentos
+        eventos = Solicitacao.query \
+            .filter_by(usuario_id=user_id) \
+            .options(joinedload(Solicitacao.autor)).all()
+
+    # Converter eventos para o FullCalendar (JSON)
+    agenda_eventos = []
+    for e in eventos:
+        if not e.data_agendamento:
+            continue
+
+        data = e.data_agendamento.strftime("%Y-%m-%d")
+        hora = e.hora_agendamento.strftime("%H:%M") if e.hora_agendamento else "00:00"
+
+        agenda_eventos.append({
+            "title": f"{e.foco} - {e.autor.nome_uvis}",
+            "start": f"{data}T{hora}",
+            "url": url_for("main.admin_editar", id=e.id) if user_tipo in ["admin", "operario"] else None,
+            "color": "#198754" if e.status == "APROVADO" else
+                     "#dc3545" if e.status == "NEGADO" else
+                     "#ffc107" if e.status == "EM ANÁLISE" else
+                     "#0d6efd"
+        })
+
+    return render_template("agenda.html", eventos_json=json.dumps(agenda_eventos))

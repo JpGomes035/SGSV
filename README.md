@@ -90,7 +90,7 @@ graph TD
 ```
 ## 🚀 Tecnologias Utilizadas
 
-- **Linguagem:** Python 3.12+
+- **Linguagem:** Python 3.14+
 - **Framework Web:** Flask (Microframework ágil)
 - **Banco de Dados:** SQL (SQLite para Dev / PostgreSQL para Produção)
 - **ORM:** SQLAlchemy
@@ -124,6 +124,7 @@ graph TD
 3. **Instalar as dependências**
     ```bash
     pip install -r requirements.txt
+    pip install reportlab
     ```
 
 4. **Inicializar o Banco de Dados**

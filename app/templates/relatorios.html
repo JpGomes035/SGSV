@@ -3,7 +3,7 @@
 
 {% set meses = {
     1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 
-    5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto", 
+    5: "Maio", 6: "Julho", 7: "Julho", 8: "Agosto", 
     9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
 } %}
 
@@ -21,49 +21,77 @@
         <i class="bi bi-bar-chart-fill me-2"></i> Relatórios
     </h2>
     
-    <div class="filter-controls">
-        <form method="GET" class="d-flex align-items-center gap-3">
-            <h5 class="mb-0 text-muted">Filtrar por Período:</h5>
-            
-            <select name="mes" class="form-select" style="width: 150px;">
+    <div class="d-flex gap-2">
+        {# Botões de Exportação - Movidos para a extrema direita para maior foco #}
+        <a href="{{ url_for('main.exportar_relatorio_pdf', mes=mes_selecionado, ano=ano_selecionado, uvis_id=uvis_id_selecionado) }}"
+           class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Exportar PDF
+        </a>
+
+        <a href="{{ url_for('main.exportar_relatorio_excel', mes=mes_selecionado, ano=ano_selecionado, uvis_id=uvis_id_selecionado) }}"
+           class="btn btn-success">
+            <i class="bi bi-file-earmark-excel-fill"></i> Exportar Excel
+        </a>
+    </div>
+</div>
+
+{# --- Bloco de Filtros (Organizado em um único Card) --- #}
+<div class="card shadow-sm rounded-4 p-3 mb-4 bg-light">
+    <form method="GET" class="d-flex flex-wrap align-items-end gap-3">
+        
+        <div class="flex-grow-1">
+            <label for="mes_select" class="form-label fw-bold text-muted mb-1">Mês:</label>
+            <select name="mes" id="mes_select" class="form-select" style="min-width: 120px;">
                 {% for num, nome in meses.items() %}
                     <option value="{{ num }}" {% if num == mes_selecionado|int %}selected{% endif %}>
                         {{ nome }}
                     </option>
                 {% endfor %}
             </select>
-            
-            <select name="ano" class="form-select" style="width: 120px;">
+        </div>
+        
+        <div class="flex-grow-1">
+            <label for="ano_select" class="form-label fw-bold text-muted mb-1">Ano:</label>
+            <select name="ano" id="ano_select" class="form-select" style="min-width: 100px;">
                 {% for ano in anos_disponiveis %}
                     <option value="{{ ano }}" {% if ano|int == ano_selecionado|int %}selected{% endif %}>
                         {{ ano }}
                     </option>
                 {% endfor %}
             </select>
-            
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel-fill"></i> Filtrar
-            </button>
-        </form>
+        </div>
         
-    </div>
-    <div class="d-flex gap-2">
-    <a href="{{ url_for('main.exportar_relatorio_pdf', mes=mes_selecionado, ano=ano_selecionado) }}"
-       class="btn btn-danger">
-        <i class="bi bi-file-earmark-pdf-fill"></i> Exportar PDF
-    </a>
-
-    <a href="{{ url_for('main.exportar_relatorio_excel', mes=mes_selecionado, ano=ano_selecionado) }}"
-       class="btn btn-success">
-        <i class="bi bi-file-earmark-excel-fill"></i> Exportar Excel
-    </a>
+        <div class="flex-grow-1" style="min-width: 200px;">
+            <label for="uvis_select" class="form-label fw-bold text-muted mb-1">Unidade (UVIS):</label>
+            <select name="uvis_id" id="uvis_select" class="form-select">
+                {# Opção padrão para todas as unidades #}
+                <option value="" {% if uvis_id_selecionado is none or uvis_id_selecionado == "" %}selected{% endif %}>
+                    Todas as Unidades
+                </option>
+                {# Loop pelas UVIS disponíveis #}
+                {% for id, nome in uvis_disponiveis %}
+                    <option value="{{ id }}" {% if id|int == uvis_id_selecionado|int %}selected{% endif %}>
+                        {{ nome }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="ms-auto pt-3 pt-sm-0">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel-fill"></i> Aplicar Filtros
+            </button>
+        </div>
+    </form>
 </div>
-</div>
-
+{# ---------------------------------------------------- #}
 
 
 <h4 class="mb-4 text-primary">
     Dados de {{ meses[mes_selecionado|int] }} / {{ ano_selecionado }}
+    {% if uvis_id_selecionado %}
+        <small class="text-muted fst-italic">— Filtrado por: {{ uvis_disponiveis | selectattr(0, 'equalto', uvis_id_selecionado|int) | map(attribute=1) | first }}</small>
+    {% endif %}
 </h4>
 
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-4 mb-4">
@@ -117,7 +145,7 @@
             <tbody>
                 {% for regiao, count in dados_regiao %}
                 <tr>
-                    <td>{{ regiao }}</td>
+                    <td>{{ regiao or 'Não informado' }}</td>
                     <td class="text-center">{{ count }}</td>
                 </tr>
                 {% else %}
@@ -209,7 +237,7 @@
                     <tbody>
                         {% for foco, count in dados_foco %}
                         <tr>
-                            <td>{{ foco }}</td>
+                            <td>{{ foco or 'Não informado' }}</td>
                             <td class="text-center">{{ count }}</td>
                         </tr>
                         {% else %}
@@ -239,7 +267,7 @@
                     <tbody>
                         {% for tipo, count in dados_tipo_visita %}
                         <tr>
-                            <td>{{ tipo | capitalize }}</td>
+                            <td>{{ tipo | capitalize or 'Não informado' }}</td>
                             <td class="text-center">{{ count }}</td>
                         </tr>
                         {% else %}
@@ -267,7 +295,7 @@
                     <tbody>
                         {% for altura, count in dados_altura_voo %}
                         <tr>
-                            <td>{{ altura }}</td>
+                            <td>{{ altura or 'Não informado' }}</td>
                             <td class="text-center">{{ count }}</td>
                         </tr>
                         {% else %}
@@ -290,22 +318,26 @@
     <canvas id="chartMensal" height="100"></canvas>
 </div>
 
+<script id="dados-mensais-json" type="application/json">
+    {{ dados_mensais | tojson | safe }}
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
-    const dadosMensais = {{ dados_mensais | tojson | safe }};
+    // 2. O JavaScript lê o conteúdo daquele script e converte para objeto real
+    const dadosRaw = document.getElementById('dados-mensais-json').textContent;
+    const dadosMensais = JSON.parse(dadosRaw);
     
-    // O restante do código JavaScript que usa os dados é mantido
+    // Daqui para baixo, tudo igual ao seu código original
     const labels = dadosMensais.map(item => item[0]);
     const counts = dadosMensais.map(item => item[1]);
 
-    // Função para formatar o mês (ex: '2023-12' -> 'Dez/23')
     function formatarMes(label) {
+        if (!label) return ''; // Proteção contra nulos
         const [ano, mes] = label.split('-');
-        // Mês - 1, pois JavaScript usa índice 0-11
         const data = new Date(ano, mes - 1); 
         const formatador = new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit' });
-        // Retorna o formato Ex: Dez/23
         return formatador.format(data).replace('.', '/').replace(' ', ''); 
     }
     
@@ -320,10 +352,10 @@
             datasets: [{
                 label: 'Total de Solicitações',
                 data: counts,
-                backgroundColor: 'rgba(0, 163, 196, 0.2)', // Cor Ciano (Accent)
+                backgroundColor: 'rgba(0, 163, 196, 0.2)',
                 borderColor: '#00a3c4',
                 borderWidth: 3,
-                tension: 0.3, // Curva suave
+                tension: 0.3,
                 fill: true,
                 pointBackgroundColor: '#00a3c4',
                 pointBorderColor: '#fff',
@@ -340,7 +372,7 @@
                         text: 'Quantidade de Solicitações'
                     },
                     ticks: {
-                        precision: 0 // Garante números inteiros no eixo Y
+                        precision: 0
                     }
                 }
             },

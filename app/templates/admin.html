@@ -69,22 +69,7 @@
                         <br>
                         <span class="badge bg-secondary mb-2 mt-1">{{ p.autor.regiao }}</span>
 
-                        {# NOVO: BOTÕES DE ADMIN/DELETAR #}
-                        {% if current_user.tipo_usuario == 'admin' %}
-                        <div class="d-flex gap-1 mt-2">
-                            <a href="{{ url_for('main.admin_editar', id=p.id) }}" class="btn btn-sm btn-info text-white me-2" title="Editar Data, Endereço e Foco (Apenas Admin)">
-                                <i class="bi bi-pencil-square"></i> editar
-                            </a>
-                            {# ESTE FORMULÁRIO ESTÁ CORRETO E AGORA NÃO ESTÁ ANINHADO #}
-                            <form action="{{ url_for('main.deletar_registro', id=p.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja DELETAR PERMANENTEMENTE este registro? Esta ação é irreversível.');">
-                                <button type="submit" class="btn btn-sm btn-danger" title="Deletar permanentemente (Apenas Admin)">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                        {% endif %}
-                        {# FIM NOVO BOTÕES DE ADMIN/DELETAR #}
-
+                        
                         <div class="small text-muted border-top pt-2 mt-2">
                             <i class="bi bi-calendar"></i> 
                             {{ p.data_agendamento.strftime('%d/%m/%Y') }} às {{ p.hora_agendamento.strftime('%H:%M') }} 
@@ -98,6 +83,22 @@
                             <br>
                             CEP: {{ p.cep }}
                         </div>
+                        {# NOVO: BOTÕES DE ADMIN/DELETAR #}
+                        {% if current_user.tipo_usuario == 'admin' %}
+                        <div class="d-flex gap-1 mt-2">
+                            <a href="{{ url_for('main.admin_editar', id=p.id) }}" class="btn btn-sm btn-info text-white me-2">
+                                <i class="bi bi-pencil-square"></i> Editar
+                            </a>
+                            {# ESTE FORMULÁRIO ESTÁ CORRETO E AGORA NÃO ESTÁ ANINHADO #}
+                            <form action="{{ url_for('main.deletar_registro', id=p.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja DELETAR PERMANENTEMENTE este registro? Esta ação é irreversível.');">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash">Deletar</i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        {# FIM NOVO BOTÕES DE ADMIN/DELETAR #}
+
                     </td>
 
                     <td class="align-top pt-3">

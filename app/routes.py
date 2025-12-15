@@ -125,7 +125,7 @@ def admin_dashboard():
 
 @bp.route('/admin/exportar_excel')
 def exportar_excel():
-    # AJUSTE CHAVE: Permite APENAS 'admin' E 'operario'
+    # Permite APENAS admin e operario
     if 'user_id' not in session or session.get('user_tipo') not in ['admin', 'operario']:
         flash('Permissão negada para exportar.', 'danger')
         return redirect(url_for('main.admin_dashboard'))
@@ -154,13 +154,14 @@ def exportar_excel():
     ws = wb.active
     ws.title = "Relatório de Solicitações"
 
-    # Cabeçalho ATUALIZADO (do segundo código, com mais campos)
+    # Cabeçalho atualizado com ENDEREÇO ÚNICO
     headers = [
         "ID", "Unidade", "Região",
         "Data Agendada", "Hora",
-        "CEP", "Logradouro", "Número", "Bairro", "Cidade/UF", "Complemento",
+        "Endereço Completo",       # <-- CAMPO ÚNICO
         "Latitude", "Longitude",
-        "Foco", "Tipo Visita", "Altura", "Criadouro?", "Apoio CET?",
+        "Foco", "Tipo Visita", "Altura",
+        "Criadouro?", "Apoio CET?",
         "Observação",
         "Status", "Protocolo", "Justificativa"
     ]
@@ -175,7 +176,7 @@ def exportar_excel():
         bottom=Side(style='thin')
     )
 
-    # Escreve cabeçalho
+    # Cabeçalho
     for col_num, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col_num, value=header)
         cell.fill = header_fill
@@ -186,20 +187,27 @@ def exportar_excel():
     # Conteúdo
     row_num = 2
     for p in pedidos:
-        # Tratamento de Endereço (baseado no segundo código, mas mantendo a UF separada para clareza)
-        cidade_uf = f"{p.cidade or ''}/{p.uf or ''}"
-        logradouro_num = f"{p.logradouro or ''}"
 
-        # Tratamento de Booleans (Sim/Não) do segundo código
+        # --- ENDEREÇO COMPLETO ---
+        endereco_completo = (
+            f"{p.logradouro or ''}, {getattr(p, 'numero', '')} - "
+            f"{p.bairro or ''} - "
+            f"{(p.cidade or '')}/{(p.uf or '')} - "
+            f"{p.cep or ''}"
+        )
+
+        if getattr(p, 'complemento', None):
+            endereco_completo += f" - {p.complemento}"
+
+        # Booleans
         criadouro_txt = "SIM" if getattr(p, 'criadouro', None) else "NÃO"
         cet_txt = "SIM" if getattr(p, 'apoio_cet', None) else "NÃO"
 
-        # Formatação de data (Corrigido o erro de importação de datetime)
+        # Data formatada
         if p.data_agendamento:
             try:
-                if isinstance(p.data_agendamento, (date, datetime)): 
+                if isinstance(p.data_agendamento, (date, datetime)):
                     data_formatada = p.data_agendamento.strftime("%d-%m-%y")
-                # Se for string (caso do primeiro código)
                 else:
                     data_formatada = datetime.strptime(str(p.data_agendamento), "%Y-%m-%d").strftime("%d-%m-%y")
             except ValueError:
@@ -207,20 +215,19 @@ def exportar_excel():
         else:
             data_formatada = ""
 
+        # Linha completa
         row = [
             p.id,
             p.autor.nome_uvis,
             p.autor.regiao,
             data_formatada,
             p.hora_agendamento,
-            p.cep,
-            logradouro_num,
-            getattr(p, 'numero', ''),
-            p.bairro,
-            cidade_uf,
-            getattr(p, 'complemento', ''),
+
+            endereco_completo,     # <-- CAMPO ÚNICO AQUI
+
             getattr(p, 'latitude', ''),
             getattr(p, 'longitude', ''),
+
             p.foco,
             getattr(p, 'tipo_visita', ''),
             getattr(p, 'altura_voo', ''),
@@ -232,6 +239,7 @@ def exportar_excel():
             p.justificativa
         ]
 
+        # Escreve na planilha
         for col_num, value in enumerate(row, 1):
             cell = ws.cell(row=row_num, column=col_num, value=value)
             cell.border = thin_border
@@ -239,13 +247,13 @@ def exportar_excel():
 
         row_num += 1
 
-    # Freeze Pane (Mantido do primeiro código)
+    # Congela o cabeçalho
     ws.freeze_panes = "A2"
 
-    # Ajuste automático de largura (Lógica do primeiro código, mas com a correção de 'column' para 'column_letter')
+    # Ajuste automático de largura
     for col in ws.columns:
         max_length = 0
-        column_letter = col[0].column_letter 
+        column_letter = col[0].column_letter
 
         for cell in col:
             try:
@@ -254,8 +262,7 @@ def exportar_excel():
             except:
                 pass
 
-        adjusted_width = max_length + 2
-        ws.column_dimensions[column_letter].width = adjusted_width
+        ws.column_dimensions[column_letter].width = max_length + 2
 
     # Salvar em memória
     output = BytesIO()
@@ -631,71 +638,90 @@ def relatorios():
 # =======================================================================
 # ROTA 2: Exportar PDF (Com Filtro UVIS)
 # =======================================================================
+import os
+import tempfile
+from io import BytesIO
+from datetime import datetime
+from math import ceil
+
+from flask import send_file, request
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.units import mm
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+    PageBreak, Image as RLImage, Flowable, KeepTogether
+)
+
+# matplotlib é opcional — tentamos importar e marcamos se disponível
+try:
+    import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except Exception:
+    MATPLOTLIB_AVAILABLE = False
+
 @bp.route('/admin/exportar_relatorio_pdf')
 def exportar_relatorio_pdf():
-    # 1. Parâmetros de Filtro
+    # -------------------------
+    # 1. Parâmetros e filtros
+    # -------------------------
     mes = int(request.args.get('mes', datetime.now().month))
     ano = int(request.args.get('ano', datetime.now().year))
     uvis_id = request.args.get('uvis_id', type=int)
+    orient = request.args.get('orient', default='portrait')  # 'portrait' ou 'landscape'
     filtro_data = f"{ano}-{mes:02d}"
 
-    # 2. Busca Principal para Totais e Detalhes
-    query_base = db.session.query(Solicitacao, Usuario) \
-        .join(Usuario, Usuario.id == Solicitacao.usuario_id)
-    
-    # Aplica os filtros
+    # 2. Busca Principal para Totais e Detalhes (mesma lógica sua)
+    query_base = db.session.query(Solicitacao, Usuario).join(Usuario, Usuario.id == Solicitacao.usuario_id)
     query_base = aplicar_filtros_base(query_base, filtro_data, uvis_id)
-        
-    query_results = query_base \
-        .order_by(Solicitacao.data_criacao.desc()) \
-        .all()
+    query_results = query_base.order_by(Solicitacao.data_criacao.desc()).all()
 
-    # 3. Totais (Calculados a partir de query_results)
+    # 3. Totais
     total_solicitacoes = len(query_results)
     total_aprovadas = sum(1 for s, u in query_results if s.status == "APROVADO")
     total_recusadas = sum(1 for s, u in query_results if s.status == "NEGADO")
     total_analise = sum(1 for s, u in query_results if s.status == "EM ANÁLISE")
     total_pendentes = sum(1 for s, u in query_results if s.status == "PENDENTE")
 
-    # 4. Buscas Agrupadas (Usando a função de filtro)
-    
-    # Função para aplicar filtros a queries agrupadas
+    # 4. Buscas agrupadas (mantendo sua lógica)
     def aplicar_filtros_agrupados(query):
         query = query.filter(db.func.strftime('%Y-%m', Solicitacao.data_criacao) == filtro_data)
         if uvis_id:
             query = query.filter(Solicitacao.usuario_id == uvis_id)
         return query
 
-    # Região
-    dados_regiao_query = db.session.query(Usuario.regiao, db.func.count(Solicitacao.id)) \
-        .join(Usuario, Usuario.id == Solicitacao.usuario_id)
-    dados_regiao_raw = aplicar_filtros_agrupados(dados_regiao_query).group_by(Usuario.regiao).all()
+    dados_regiao_raw = aplicar_filtros_agrupados(
+        db.session.query(Usuario.regiao, db.func.count(Solicitacao.id)).join(Usuario, Usuario.id == Solicitacao.usuario_id)
+    ).group_by(Usuario.regiao).all()
     dados_regiao = [(r or "Não informado", c) for r, c in dados_regiao_raw]
 
-    # Status
-    dados_status_raw = aplicar_filtros_agrupados(db.session.query(Solicitacao.status, db.func.count(Solicitacao.id))).group_by(Solicitacao.status).all()
+    dados_status_raw = aplicar_filtros_agrupados(
+        db.session.query(Solicitacao.status, db.func.count(Solicitacao.id))
+    ).group_by(Solicitacao.status).all()
     dados_status = [(s or "Não informado", c) for s, c in dados_status_raw]
 
-    # Foco
-    dados_foco_raw = aplicar_filtros_agrupados(db.session.query(Solicitacao.foco, db.func.count(Solicitacao.id))).group_by(Solicitacao.foco).all()
+    dados_foco_raw = aplicar_filtros_agrupados(
+        db.session.query(Solicitacao.foco, db.func.count(Solicitacao.id))
+    ).group_by(Solicitacao.foco).all()
     dados_foco = [(f or "Não informado", c) for f, c in dados_foco_raw]
 
-    # Tipo de visita
-    dados_tipo_visita_raw = aplicar_filtros_agrupados(db.session.query(Solicitacao.tipo_visita, db.func.count(Solicitacao.id))).group_by(Solicitacao.tipo_visita).all()
+    dados_tipo_visita_raw = aplicar_filtros_agrupados(
+        db.session.query(Solicitacao.tipo_visita, db.func.count(Solicitacao.id))
+    ).group_by(Solicitacao.tipo_visita).all()
     dados_tipo_visita = [(t or "Não informado", c) for t, c in dados_tipo_visita_raw]
 
-    # Altura de voo
-    dados_altura_raw = aplicar_filtros_agrupados(db.session.query(Solicitacao.altura_voo, db.func.count(Solicitacao.id))).group_by(Solicitacao.altura_voo).all()
+    dados_altura_raw = aplicar_filtros_agrupados(
+        db.session.query(Solicitacao.altura_voo, db.func.count(Solicitacao.id))
+    ).group_by(Solicitacao.altura_voo).all()
     dados_altura_voo = [(a or "Não informado", c) for a, c in dados_altura_raw]
 
-    # Unidades (UVIS)
     dados_unidade_query = db.session.query(Usuario.nome_uvis, db.func.count(Solicitacao.id)) \
         .join(Usuario, Usuario.id == Solicitacao.usuario_id) \
         .filter(Usuario.tipo_usuario == 'uvis')
     dados_unidade_raw = aplicar_filtros_agrupados(dados_unidade_query).group_by(Usuario.nome_uvis).order_by(db.func.count(Solicitacao.id).desc()).all()
     dados_unidade = [(u or "Não informado", c) for u, c in dados_unidade_raw]
 
-    # Histórico mensal (sem filtro de UVIS)
     dados_mensais_raw = (
         db.session.query(
             db.func.strftime('%Y-%m', Solicitacao.data_criacao).label('mes'),
@@ -707,45 +733,97 @@ def exportar_relatorio_pdf():
     )
     dados_mensais = [(m, c) for m, c in dados_mensais_raw]
 
-    # 5. Montar PDF (Lógica de ReportLab)
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-    caminho_pdf = tmp.name
-    tmp.close()
+    # -------------------------
+    # 5. Preparar documento PDF
+    # -------------------------
+    tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    caminho_pdf = tmp_pdf.name
+    tmp_pdf.close()
 
-    doc = SimpleDocTemplate(caminho_pdf, pagesize=A4,
-                             leftMargin=16*mm, rightMargin=16*mm,
-                             topMargin=16*mm, bottomMargin=16*mm)
-    
-    # ... (Styles, Title, Summary Box e as Sections do PDF permanecem as mesmas) ...
-    # O código abaixo é a parte do ReportLab, mantida como estava,
-    # mas usando as variáveis de dados que agora estão filtradas.
-    
+    pagesize = A4
+    if orient == 'landscape':
+        pagesize = landscape(A4)
+
+    doc = SimpleDocTemplate(caminho_pdf,
+                            pagesize=pagesize,
+                            leftMargin=16*mm, rightMargin=16*mm,
+                            topMargin=16*mm, bottomMargin=20*mm)
+
+    # Styles aprimorados
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('title', parent=styles['Title'], fontSize=18, alignment=1, spaceAfter=6)
-    section_h = ParagraphStyle('sec', parent=styles['Heading3'], fontSize=12, spaceAfter=6)
+    title_style = ParagraphStyle('title', parent=styles['Title'], fontSize=22, leading=26, alignment=1, spaceAfter=8, textColor=colors.HexColor('#0d6efd'))
+    subtitle_style = ParagraphStyle('subtitle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#666'), alignment=1, spaceAfter=6)
+    section_h = ParagraphStyle('sec', parent=styles['Heading2'], fontSize=12, spaceAfter=6, textColor=colors.HexColor('#0d6efd'))
     normal = styles['Normal']
     small = ParagraphStyle('small', parent=styles['BodyText'], fontSize=9, textColor=colors.HexColor('#555'))
 
     story = []
 
-    # Se a UVIS foi filtrada, busca o nome para o título
+    # -------------------------
+    # Funções utilitárias
+    # -------------------------
+    def safe_img_from_plt(fig):
+        """Recebe um matplotlib.figure.Figure, retorna ReportLab Image (BytesIO)."""
+        bio = BytesIO()
+        fig.tight_layout()
+        fig.savefig(bio, format='png', dpi=150, bbox_inches='tight')
+        plt.close(fig)
+        bio.seek(0)
+        return RLImage(bio, width=170*mm)  # escala automática
+
+    def render_small_table(rows, colWidths):
+        tbl = Table(rows, colWidths=colWidths)
+        tbl.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('ALIGN', (0,0), (-1,0), 'CENTER'),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.25, colors.lightgrey),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fbfdff')]),
+            ('LEFTPADDING', (0,0), (-1,-1), 6),
+            ('RIGHTPADDING', (0,0), (-1,-1), 6),
+            ('TOPPADDING', (0,0), (-1,-1), 4),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ]))
+        return tbl
+
+    # -------------------------
+    # Cabeçalho / Capa
+    # -------------------------
+    # Logo: procura em static/logo.png por padrão — se não existir, pula
+    logo_path = os.path.join(os.getcwd(), 'static', 'logo.png')
+    if os.path.exists(logo_path):
+        try:
+            logo = RLImage(logo_path, width=36*mm, height=36*mm)
+        except Exception:
+            logo = None
+    else:
+        logo = None
+
+    # Título e capa
+    story.append(Spacer(1, 6))
+    if logo:
+        # coloca o logo e título lado a lado
+        h = [[logo, Paragraph(f"<b>Relatório Mensal — {mes:02d}/{ano}</b>", title_style)]]
+        cap_tbl = Table(h, colWidths=[40*mm, (doc.width - 40*mm)])
+        cap_tbl.setStyle(TableStyle([('VALIGN', (0,0), (-1,-1), 'MIDDLE')]))
+        story.append(cap_tbl)
+    else:
+        story.append(Paragraph(f"Relatório Mensal — {mes:02d}/{ano}", title_style))
+
+    # subtítulo e linhas
     titulo_uvis = ""
     if uvis_id:
         uvis_obj = db.session.query(Usuario.nome_uvis).filter(Usuario.id == uvis_id).first()
         if uvis_obj:
             titulo_uvis = f" — {uvis_obj.nome_uvis}"
+    story.append(Paragraph(f"Sistema de Gestão de Solicitações{titulo_uvis}", subtitle_style))
+    story.append(Spacer(1, 8))
 
-    # Header
-    story.append(Paragraph(f"Relatório Mensal — {mes:02d}/{ano}{titulo_uvis}", title_style))
-    story.append(Paragraph("Sistema de Gestão de Solicitações", small))
-    story.append(Spacer(1, 6))
-
-    # Decorative bar
-    story.append(Table([['']], colWidths=[170*mm], style=[('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#0d6efd')), ('LINEBELOW', (0,0), (-1,-1), 0, colors.white)], hAlign='LEFT'))
-    story.append(Spacer(1, 10))
-
-    # SUMMARY BOX
-    resumo = [
+    # capa: box com resumo principal (centralizado)
+    resumo_box = [
         ['Métrica', 'Quantidade'],
         ['Total de Solicitações', str(total_solicitacoes)],
         ['Aprovadas', str(total_aprovadas)],
@@ -753,99 +831,128 @@ def exportar_relatorio_pdf():
         ['Em Análise', str(total_analise)],
         ['Pendentes', str(total_pendentes)]
     ]
-    t_resumo = Table(resumo, colWidths=[110*mm, 50*mm])
-    t_resumo.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('INNERGRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-        ('BOX', (0,0), (-1,-1), 0.5, colors.lightgrey),
-    ]))
-    story.append(t_resumo)
+    story.append(render_small_table(resumo_box, [80*mm, 40*mm]))
     story.append(Spacer(1, 12))
 
-    # SECTION: Regiões
+    # Capa: breve meta-infos
+    story.append(Paragraph(f"Gerado por: Sistema SGSV — Gerado em {datetime.now().strftime('%d/%m/%Y %H:%M')}", small))
+    story.append(Spacer(1, 18))
+
+    # -------------------------
+    # Sumário simples (lista de seções)
+    # -------------------------
+    story.append(Paragraph("Sumário", section_h))
+    sumario_itens = [
+        "Resumo Geral",
+        "Solicitações por Região",
+        "Status Detalhado",
+        "Solicitações por Foco / Tipo / Altura",
+        "Solicitações por Unidade (UVIS)",
+        "Histórico Mensal",
+        "Gráficos (Visão Geral)",
+        "Registros Detalhados"
+    ]
+    for i, it in enumerate(sumario_itens, 1):
+        story.append(Paragraph(f"{i}. {it}", normal))
+    story.append(PageBreak())
+
+    # -------------------------
+    # Seções com tabelas (formatadas)
+    # -------------------------
+    # 1) Resumo Geral (repetição do box com estilo)
+    story.append(Paragraph("Resumo Geral", section_h))
+    story.append(render_small_table(resumo_box, [110*mm, 50*mm]))
+    story.append(Spacer(1, 8))
+
+    # 2) Regiões
     story.append(Paragraph("Solicitações por Região", section_h))
     rows = [['Região', 'Total']] + [[r, str(c)] for r, c in dados_regiao]
-    tbl = Table(rows, colWidths=[110*mm, 50*mm])
-    tbl.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,0), (-1,0), 9),
-    ]))
-    story.append(tbl)
-    story.append(Spacer(1, 10))
+    story.append(render_small_table(rows, [110*mm, 50*mm]))
+    story.append(Spacer(1, 8))
 
-    # SECTION: Status
+    # 3) Status
     story.append(Paragraph("Status Detalhado", section_h))
     rows = [['Status', 'Total']] + [[s, str(c)] for s, c in dados_status]
-    t_status = Table(rows, colWidths=[110*mm, 50*mm])
-    t_status.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-    ]))
-    story.append(t_status)
-    story.append(Spacer(1, 10))
+    story.append(render_small_table(rows, [110*mm, 50*mm]))
+    story.append(Spacer(1, 8))
 
-    # SECTION: Foco / Tipo / Altura
+    # 4) Foco / Tipo / Altura
     story.append(Paragraph("Solicitações por Foco", section_h))
     rows = [['Foco', 'Total']] + [[f, str(c)] for f, c in dados_foco]
-    story.append(Table(rows, colWidths=[110*mm, 50*mm], style=[
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-    ]))
-    story.append(Spacer(1, 8))
+    story.append(render_small_table(rows, [110*mm, 50*mm]))
+    story.append(Spacer(1, 6))
 
     story.append(Paragraph("Solicitações por Tipo de Visita", section_h))
-    rows = [['Tipo de Visita', 'Total']] + [[t, str(c)] for t, c in dados_tipo_visita]
-    story.append(Table(rows, colWidths=[110*mm, 50*mm], style=[
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-    ]))
-    story.append(Spacer(1, 8))
+    rows = [['Tipo', 'Total']] + [[t, str(c)] for t, c in dados_tipo_visita]
+    story.append(render_small_table(rows, [110*mm, 50*mm]))
+    story.append(Spacer(1, 6))
 
     story.append(Paragraph("Solicitações por Altura de Voo", section_h))
     rows = [['Altura (m)', 'Total']] + [[str(a), str(c)] for a, c in dados_altura_voo]
-    story.append(Table(rows, colWidths=[110*mm, 50*mm], style=[
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-    ]))
-    story.append(Spacer(1, 10))
+    story.append(render_small_table(rows, [110*mm, 50*mm]))
+    story.append(Spacer(1, 8))
 
-    # SECTION: UVIS
+    # 5) UVIS
     story.append(Paragraph("Solicitações por Unidade (UVIS) — Top", section_h))
     rows = [['Unidade', 'Total']] + [[u, str(c)] for u, c in dados_unidade]
-    story.append(Table(rows, colWidths=[110*mm, 50*mm], style=[
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-    ]))
-    story.append(Spacer(1, 10))
+    story.append(render_small_table(rows, [110*mm, 50*mm]))
+    story.append(Spacer(1, 8))
 
-    # SECTION: Histórico Mensal (pequeno)
+    # 6) Histórico mensal
     story.append(Paragraph("Histórico Mensal (Total por Mês)", section_h))
     rows = [['Mês', 'Total']] + [[m, str(c)] for m, c in dados_mensais]
-    story.append(Table(rows, colWidths=[70*mm, 40*mm], style=[
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-    ]))
+    story.append(render_small_table(rows, [70*mm, 40*mm]))
     story.append(Spacer(1, 12))
 
-    # SECTION: Registros Detalhados (lista)
+    # 7) Gráficos — somente se matplotlib disponível
     story.append(PageBreak())
-    story.append(Paragraph("Registros Detalhados", ParagraphStyle('h', parent=styles['Heading2'], fontSize=14)))
+    story.append(Paragraph("Gráficos (Visão Geral)", section_h))
+    if MATPLOTLIB_AVAILABLE:
+        try:
+            # Pie chart: distribuição por status
+            labels = [s for s, _ in dados_status]
+            values = [c for _, c in dados_status]
+            fig1, ax1 = plt.subplots(figsize=(6, 3))
+            ax1.pie(values or [1], labels=labels, autopct=lambda p: f'{p:.0f}%' if p > 0 else '', startangle=90, textprops={'fontsize': 8})
+            ax1.axis('equal')
+            story.append(safe_img_from_plt(fig1))
+            story.append(Spacer(1, 8))
+
+            # Bar chart: top UVIS
+            u_names = [u for u, _ in dados_unidade[:8]]
+            u_vals = [c for _, c in dados_unidade[:8]]
+            fig2, ax2 = plt.subplots(figsize=(8, 2.6))
+            ax2.barh(u_names[::-1] or ['Nenhum'], u_vals[::-1] or [0])
+            ax2.set_xlabel('Total')
+            ax2.set_title('Top UVIS (maiores)', fontsize=9)
+            ax2.tick_params(axis='y', labelsize=8)
+            story.append(safe_img_from_plt(fig2))
+            story.append(Spacer(1, 8))
+
+            # Line chart: histórico mensal
+            months = [m for m, _ in dados_mensais]
+            counts = [c for _, c in dados_mensais]
+            fig3, ax3 = plt.subplots(figsize=(8, 2.6))
+            if months:
+                ax3.plot(months, counts, marker='o', linewidth=1)
+                ax3.set_xticklabels(months, rotation=45, fontsize=8)
+            ax3.set_title('Histórico Mensal', fontsize=9)
+            ax3.grid(axis='y', linestyle=':', linewidth=0.5)
+            story.append(safe_img_from_plt(fig3))
+            story.append(Spacer(1, 6))
+        except Exception:
+            # se algo falhar nos gráficos, apenas passa
+            story.append(Paragraph("Gráficos indisponíveis (erro ao gerar).", normal))
+            story.append(Spacer(1, 8))
+    else:
+        story.append(Paragraph("Matplotlib não disponível — gráficos foram omitidos.", normal))
+        story.append(Spacer(1, 8))
+
+    # 8) Registros detalhados (tabela grande)
+    story.append(PageBreak())
+    story.append(Paragraph("Registros Detalhados", section_h))
     story.append(Spacer(1, 6))
 
-    # Cabeçalho da tabela detalhada
     registros_header = ['Data', 'Hora', 'Unidade', 'Protocolo', 'Status', 'Região', 'Foco', 'Tipo Visita', 'Observação']
     registros_rows = [registros_header]
 
@@ -873,40 +980,71 @@ def exportar_relatorio_pdf():
 
         registros_rows.append([data_str, hora_str, unidade, protocolo, status, regiao, foco, tipo_visita, obs])
 
-    # tabela detalhada
-    tbl_det = Table(registros_rows, repeatRows=1,
-                     colWidths=[18*mm, 14*mm, 35*mm, 26*mm, 22*mm, 28*mm, 28*mm, 30*mm, 45*mm])
-    tbl_det.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,0), (-1,0), 9),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fbfdff')]),
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-    ]))
+    # Dividimos a tabela em pedaços para evitar problemas de memória/páginas
+    # e garantir que não estoure
+    chunk_size = 40
+    for i in range(0, len(registros_rows), chunk_size):
+        chunk = registros_rows[i:i+chunk_size]
+        tbl = Table(chunk, repeatRows=1, colWidths=[18*mm, 14*mm, 35*mm, 26*mm, 22*mm, 28*mm, 28*mm, 30*mm, 45*mm])
+        tbl.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0d6efd')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 9),
+            ('GRID', (0,0), (-1,-1), 0.25, colors.lightgrey),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fbfdff')]),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('LEFTPADDING', (0,0), (-1,-1), 4),
+            ('RIGHTPADDING', (0,0), (-1,-1), 4),
+            ('TOPPADDING', (0,0), (-1,-1), 3),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ]))
+        story.append(tbl)
+        story.append(Spacer(1, 8))
+        # adiciona quebra de página entre chunks (exceto se for o último)
+        if i + chunk_size < len(registros_rows):
+            story.append(PageBreak())
 
-    story.append(tbl_det)
+    # -------------------------
+    # Footer fixo e page numbers
+    # -------------------------
+    # Usaremos canvas callbacks quando build() for chamado.
+    def _header_footer(canvas, doc):
+        # header (linha superior colorida)
+        canvas.saveState()
+        w, h = pagesize
+        # linha azul
+        canvas.setFillColor(colors.HexColor('#0d6efd'))
+        canvas.rect(doc.leftMargin, h - (12*mm), doc.width, 4, fill=1, stroke=0)
 
-    # rodapé / gerado em
-    story.append(Spacer(1, 8))
-    story.append(Paragraph(f"Gerado em {datetime.now().strftime('%d/%m/%Y %H:%M')}", small))
+        # rodapé: texto e número de página
+        footer_text = "Sistema de Gestão de Solicitações — SGSV"
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor('#777'))
+        canvas.drawString(doc.leftMargin, 10*mm, footer_text)
 
-    # build
-    doc.build(story)
-    
-    # 6. Retorno (Download)
+        # número de páginas
+        page_num_text = f"Página {canvas.getPageNumber()}"
+        canvas.drawRightString(doc.leftMargin + doc.width, 10*mm, page_num_text)
+        canvas.restoreState()
+
+    # -------------------------
+    # Build e retorno
+    # -------------------------
+    doc.build(story, onFirstPage=_header_footer, onLaterPages=_header_footer)
+
+    # nome do arquivo
     nome_arquivo = f"relatorio_SGSV_{ano}_{mes:02d}"
     if uvis_id:
-        nome_arquivo += f"_UVIS_{uvis_id}" # Adiciona o ID da UVIS ao nome do arquivo
+        nome_arquivo += f"_UVIS_{uvis_id}"
 
+    # envia o pdf
     return send_file(
         caminho_pdf,
         as_attachment=True,
         download_name=f"{nome_arquivo}.pdf",
         mimetype="application/pdf"
     )
-
 
 # =======================================================================
 # ROTA 3: Exportar Excel (Com Filtro UVIS)
